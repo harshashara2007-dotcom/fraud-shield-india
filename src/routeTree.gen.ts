@@ -9,8 +9,56 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpiRouteImport } from './routes/upi'
+import { Route as ScreenshotRouteImport } from './routes/screenshot'
+import { Route as ScanRouteImport } from './routes/scan'
+import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as SafebotRouteImport } from './routes/safebot'
+import { Route as ReportRouteImport } from './routes/report'
+import { Route as MapRouteImport } from './routes/map'
+import { Route as CallRouteImport } from './routes/call'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UpiRoute = UpiRouteImport.update({
+  id: '/upi',
+  path: '/upi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScreenshotRoute = ScreenshotRouteImport.update({
+  id: '/screenshot',
+  path: '/screenshot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafebotRoute = SafebotRouteImport.update({
+  id: '/safebot',
+  path: '/safebot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CallRoute = CallRouteImport.update({
+  id: '/call',
+  path: '/call',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +67,144 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/call': typeof CallRoute
+  '/map': typeof MapRoute
+  '/report': typeof ReportRoute
+  '/safebot': typeof SafebotRoute
+  '/safety': typeof SafetyRoute
+  '/scan': typeof ScanRoute
+  '/screenshot': typeof ScreenshotRoute
+  '/upi': typeof UpiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/call': typeof CallRoute
+  '/map': typeof MapRoute
+  '/report': typeof ReportRoute
+  '/safebot': typeof SafebotRoute
+  '/safety': typeof SafetyRoute
+  '/scan': typeof ScanRoute
+  '/screenshot': typeof ScreenshotRoute
+  '/upi': typeof UpiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/call': typeof CallRoute
+  '/map': typeof MapRoute
+  '/report': typeof ReportRoute
+  '/safebot': typeof SafebotRoute
+  '/safety': typeof SafetyRoute
+  '/scan': typeof ScanRoute
+  '/screenshot': typeof ScreenshotRoute
+  '/upi': typeof UpiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/call'
+    | '/map'
+    | '/report'
+    | '/safebot'
+    | '/safety'
+    | '/scan'
+    | '/screenshot'
+    | '/upi'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/call'
+    | '/map'
+    | '/report'
+    | '/safebot'
+    | '/safety'
+    | '/scan'
+    | '/screenshot'
+    | '/upi'
+  id:
+    | '__root__'
+    | '/'
+    | '/call'
+    | '/map'
+    | '/report'
+    | '/safebot'
+    | '/safety'
+    | '/scan'
+    | '/screenshot'
+    | '/upi'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CallRoute: typeof CallRoute
+  MapRoute: typeof MapRoute
+  ReportRoute: typeof ReportRoute
+  SafebotRoute: typeof SafebotRoute
+  SafetyRoute: typeof SafetyRoute
+  ScanRoute: typeof ScanRoute
+  ScreenshotRoute: typeof ScreenshotRoute
+  UpiRoute: typeof UpiRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upi': {
+      id: '/upi'
+      path: '/upi'
+      fullPath: '/upi'
+      preLoaderRoute: typeof UpiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/screenshot': {
+      id: '/screenshot'
+      path: '/screenshot'
+      fullPath: '/screenshot'
+      preLoaderRoute: typeof ScreenshotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safebot': {
+      id: '/safebot'
+      path: '/safebot'
+      fullPath: '/safebot'
+      preLoaderRoute: typeof SafebotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/call': {
+      id: '/call'
+      path: '/call'
+      fullPath: '/call'
+      preLoaderRoute: typeof CallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +217,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CallRoute: CallRoute,
+  MapRoute: MapRoute,
+  ReportRoute: ReportRoute,
+  SafebotRoute: SafebotRoute,
+  SafetyRoute: SafetyRoute,
+  ScanRoute: ScanRoute,
+  ScreenshotRoute: ScreenshotRoute,
+  UpiRoute: UpiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
