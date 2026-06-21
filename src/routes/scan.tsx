@@ -41,22 +41,6 @@ function ScanScreen() {
     let raf = 0;
     let cancelled = false;
 
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-          audio: false,
-        });
-        if (cancelled || !videoRef.current) return;
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        tick();
-      } catch (e) {
-        toast.error("Camera unavailable. Try uploading instead.");
-        setScanning(false);
-      }
-    })();
-
     const tick = () => {
       const v = videoRef.current;
       const c = canvasRef.current;
@@ -78,6 +62,22 @@ function ScanScreen() {
       }
       raf = requestAnimationFrame(tick);
     };
+
+    (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false,
+        });
+        if (cancelled || !videoRef.current) return;
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        tick();
+      } catch {
+        toast.error("Camera unavailable. Try uploading instead.");
+        setScanning(false);
+      }
+    })();
 
     return () => {
       cancelled = true;
