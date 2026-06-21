@@ -14,7 +14,135 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      phone_blacklist: {
+        Row: {
+          id: string
+          last_reported: string | null
+          location: string | null
+          number: string
+          operator: string | null
+          reports: number | null
+          scam_type: string | null
+        }
+        Insert: {
+          id?: string
+          last_reported?: string | null
+          location?: string | null
+          number: string
+          operator?: string | null
+          reports?: number | null
+          scam_type?: string | null
+        }
+        Update: {
+          id?: string
+          last_reported?: string | null
+          location?: string | null
+          number?: string
+          operator?: string | null
+          reports?: number | null
+          scam_type?: string | null
+        }
+        Relationships: []
+      }
+      scam_reports: {
+        Row: {
+          amount_lost: number | null
+          city: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          lat: number | null
+          link: string | null
+          lng: number | null
+          phone: string | null
+          screenshot_url: string | null
+          state: string | null
+          type: string
+          upi_id: string | null
+          votes: number | null
+        }
+        Insert: {
+          amount_lost?: number | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lat?: number | null
+          link?: string | null
+          lng?: number | null
+          phone?: string | null
+          screenshot_url?: string | null
+          state?: string | null
+          type: string
+          upi_id?: string | null
+          votes?: number | null
+        }
+        Update: {
+          amount_lost?: number | null
+          city?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lat?: number | null
+          link?: string | null
+          lng?: number | null
+          phone?: string | null
+          screenshot_url?: string | null
+          state?: string | null
+          type?: string
+          upi_id?: string | null
+          votes?: number | null
+        }
+        Relationships: []
+      }
+      upi_blacklist: {
+        Row: {
+          id: string
+          last_reported: string | null
+          reports: number | null
+          scam_type: string | null
+          upi_id: string
+        }
+        Insert: {
+          id?: string
+          last_reported?: string | null
+          reports?: number | null
+          scam_type?: string | null
+          upi_id: string
+        }
+        Update: {
+          id?: string
+          last_reported?: string | null
+          reports?: number | null
+          scam_type?: string | null
+          upi_id?: string
+        }
+        Relationships: []
+      }
+      user_scans: {
+        Row: {
+          created_at: string | null
+          id: string
+          input_data: string | null
+          scan_type: string | null
+          verdict: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          input_data?: string | null
+          scan_type?: string | null
+          verdict?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          input_data?: string | null
+          scan_type?: string | null
+          verdict?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
