@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -76,21 +77,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: "ScanScam — India's #1 free AI fraud detector" },
+      { name: "description", content: "Spot UPI fraud, scam calls, fake KYC and phishing in seconds. Powered by AI + community reports across India." },
+      { name: "theme-color", content: "#0A1628" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "ScanScam" },
+      { property: "og:title", content: "ScanScam — AI fraud detector for India" },
+      { property: "og:description", content: "Scan QR, check UPI, analyze screenshots — protect yourself from cyber fraud." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-512.png" },
+      { rel: "icon", type: "image/png", href: "/icon-512.png" },
+      { rel: "preconnect", href: "https://rsms.me/" },
+      { rel: "stylesheet", href: "https://rsms.me/inter/inter.css" },
     ],
   }),
   shellComponent: RootShell,
@@ -120,6 +125,13 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Toaster
+        position="top-center"
+        theme="dark"
+        toastOptions={{
+          style: { background: "#12233D", color: "#F2F6FB", border: "1px solid #1E3A5F" },
+        }}
+      />
     </QueryClientProvider>
   );
 }
