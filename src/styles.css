@@ -109,3 +109,15 @@
 /* Hide scrollbars in the phone frame */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+
+/* Leaflet city label tooltip */
+.leaflet-tooltip.city-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 2px 0 0 0;
+  font-family: Inter, sans-serif;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.9), 0 0 4px rgba(255,255,255,0.8);
+}
+.leaflet-tooltip.city-label::before { display: none; }
+.scam-pulse { animation: pulse-dot 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
