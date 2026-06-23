@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
@@ -25,6 +25,29 @@ type Report = {
 };
 
 const FILTERS = ["All", "UPI", "KYC", "Job", "Lottery", "Phone", "Link"] as const;
+
+type CityMarker = {
+  name: string;
+  reports: number;
+  lat: number;
+  lng: number;
+  color: string;
+  size: number;
+  topScam: string;
+};
+
+const CITY_MARKERS: CityMarker[] = [
+  { name: "Delhi", reports: 234, lat: 28.6139, lng: 77.209, color: "#FF2D55", size: 30, topScam: "UPI Fraud" },
+  { name: "Mumbai", reports: 189, lat: 19.076, lng: 72.8777, color: "#FF2D55", size: 30, topScam: "KYC Scam" },
+  { name: "Bengaluru", reports: 156, lat: 12.9716, lng: 77.5946, color: "#FF2D55", size: 26, topScam: "Job Scam" },
+  { name: "Hyderabad", reports: 143, lat: 17.385, lng: 78.4867, color: "#FF9500", size: 24, topScam: "Phone Scam" },
+  { name: "Chennai", reports: 98, lat: 13.0827, lng: 80.2707, color: "#FF9500", size: 20, topScam: "UPI Fraud" },
+  { name: "Kolkata", reports: 87, lat: 22.5726, lng: 88.3639, color: "#FF9500", size: 20, topScam: "Lottery Scam" },
+  { name: "Pune", reports: 76, lat: 18.5204, lng: 73.8567, color: "#FFCC00", size: 18, topScam: "Link Scam" },
+  { name: "Ahmedabad", reports: 65, lat: 23.0225, lng: 72.5714, color: "#FFCC00", size: 16, topScam: "KYC Scam" },
+  { name: "Jaipur", reports: 54, lat: 26.9124, lng: 75.7873, color: "#FFCC00", size: 14, topScam: "UPI Fraud" },
+  { name: "Lucknow", reports: 43, lat: 26.8467, lng: 80.9462, color: "#FFCC00", size: 14, topScam: "Job Scam" },
+];
 
 function MapScreen() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -62,22 +85,10 @@ function MapScreen() {
   }, []);
 
   const stats = useMemo(() => {
-    const today = reports.filter((r) => Date.now() - new Date(r.created_at).getTime() < 86400000).length;
-    const counts = new Map<string, number>();
-    reports.forEach((r) => r.city && counts.set(r.city, (counts.get(r.city) ?? 0) + 1));
-    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
-    return {
-      today,
-      cities: counts.size,
-      top: sorted[0]?.[0] ?? "—",
-      topCities: sorted.slice(0, 10).map(([city, count]) => ({ city, count })),
-    };
+    const todayLive = reports.filter((r) => Date.now() - new Date(r.created_at).getTime() < 86400000).length;
+    const top = [...CITY_MARKERS].sort((a, b) => b.reports - a.reports)[0]?.name ?? "—";
+    return { today: todayLive, cities: CITY_MARKERS.length, top };
   }, [reports]);
-
-  const visible = useMemo(
-    () => reports.filter((r) => r.lat != null && r.lng != null && (filter === "All" || r.type === filter)),
-    [reports, filter],
-  );
 
   function nearMe() {
     if (!navigator.geolocation) return toast.error("Geolocation not supported");
@@ -105,49 +116,105 @@ function MapScreen() {
         </div>
 
         <div className="relative">
-          <div className="h-[55vh] w-full overflow-hidden rounded-2xl border border-border bg-[#071221]">
+          <div className="h-[55vh] w-full overflow-hidden rounded-2xl border border-border bg-white">
             <MapContainer
-              center={[20.5937, 78.9629]}
+              center={[22.5937, 78.9629]}
               zoom={5}
               scrollWheelZoom
-              style={{ height: "100%", width: "100%", background: "#071221" }}
+              style={{ height: "100%", width: "100%", background: "#ffffff" }}
               attributionControl={false}
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
                 subdomains={["a", "b", "c", "d"]}
                 maxZoom={19}
               />
-              {visible.map((r) => {
-                const isWarn = r.type === "Lottery" || r.type === "KYC";
-                const color = isWarn ? "#FF9500" : "#FF2D55";
-                return (
-                  <CircleMarker
-                    key={r.id}
-                    center={[r.lat!, r.lng!]}
-                    radius={7}
-                    pathOptions={{ color: "#ffffff", weight: 1.5, fillColor: color, fillOpacity: 0.85 }}
+              {CITY_MARKERS.map((c) => (
+                <CircleMarker
+                  key={c.name}
+                  center={[c.lat, c.lng]}
+                  radius={c.size / 2}
+                  pathOptions={{
+                    color: c.color,
+                    weight: 2,
+                    fillColor: c.color,
+                    fillOpacity: 0.55,
+                    className: "scam-pulse",
+                  }}
+                >
+                  <Tooltip
+                    permanent
+                    direction="bottom"
+                    offset={[0, c.size / 2 + 2]}
+                    className="city-label"
                   >
-                    <Popup>
-                      <div style={{ minWidth: 160, fontFamily: "Inter, sans-serif" }}>
-                        <strong>
-                          {scamMeta(r.type).emoji} {scamMeta(r.type).label}
-                        </strong>
-                        <br />
-                        <span style={{ fontSize: 12 }}>
-                          {r.city ?? ""} · {timeAgo(r.created_at)}
-                        </span>
-                        {r.description && (
-                          <>
-                            <br />
-                            <span style={{ fontSize: 12, color: "#555" }}>{r.description}</span>
-                          </>
-                        )}
+                    <div style={{ textAlign: "center", lineHeight: 1.1 }}>
+                      <div style={{ fontWeight: 700, color: "#0F172A", fontSize: 12 }}>{c.name}</div>
+                      <div style={{ color: "#64748B", fontSize: 10 }}>{c.reports} reports</div>
+                    </div>
+                  </Tooltip>
+                  <Popup>
+                    <div style={{ minWidth: 180, fontFamily: "Inter, sans-serif" }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: "#0F172A" }}>{c.name}</div>
+                      <div style={{ fontSize: 13, marginTop: 4 }}>
+                        <strong style={{ color: c.color }}>{c.reports}</strong> total reports
                       </div>
-                    </Popup>
-                  </CircleMarker>
-                );
-              })}
+                      <div style={{ fontSize: 12, marginTop: 2, color: "#334155" }}>
+                        Most common: <strong>{c.topScam}</strong>
+                      </div>
+                      <button
+                        onClick={() => toast(`Viewing ${c.name} reports`)}
+                        style={{
+                          marginTop: 8,
+                          width: "100%",
+                          padding: "6px 10px",
+                          borderRadius: 8,
+                          background: "#FF2D55",
+                          color: "white",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        View Reports
+                      </button>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              ))}
+              {reports
+                .filter((r) => r.lat != null && r.lng != null && (filter === "All" || r.type === filter))
+                .map((r) => {
+                  const isWarn = r.type === "Lottery" || r.type === "KYC";
+                  const color = isWarn ? "#FF9500" : "#FF2D55";
+                  return (
+                    <CircleMarker
+                      key={r.id}
+                      center={[r.lat!, r.lng!]}
+                      radius={5}
+                      pathOptions={{ color: "#ffffff", weight: 1.5, fillColor: color, fillOpacity: 0.85 }}
+                    >
+                      <Popup>
+                        <div style={{ minWidth: 160, fontFamily: "Inter, sans-serif" }}>
+                          <strong>
+                            {scamMeta(r.type).emoji} {scamMeta(r.type).label}
+                          </strong>
+                          <br />
+                          <span style={{ fontSize: 12 }}>
+                            {r.city ?? ""} · {timeAgo(r.created_at)}
+                          </span>
+                          {r.description && (
+                            <>
+                              <br />
+                              <span style={{ fontSize: 12, color: "#555" }}>{r.description}</span>
+                            </>
+                          )}
+                        </div>
+                      </Popup>
+                    </CircleMarker>
+                  );
+                })}
               <Recenter to={recenter} />
             </MapContainer>
           </div>
@@ -164,28 +231,6 @@ function MapScreen() {
           <Stat label="Cities" value={stats.cities} />
           <Stat label="Most active" value={stats.top} small />
         </div>
-
-        <section>
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Top cities</h2>
-          {stats.topCities.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No reports yet.</p>
-          ) : (
-            <ol className="space-y-1.5">
-              {stats.topCities.map((c, i) => (
-                <li
-                  key={c.city}
-                  className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm"
-                >
-                  <span>
-                    <span className="mr-2 inline-block w-5 text-muted-foreground">#{i + 1}</span>
-                    {c.city}
-                  </span>
-                  <span className="rounded-full bg-danger/15 px-2 py-0.5 text-xs font-bold text-danger">{c.count}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </section>
 
         <p className="text-center text-[10px] text-muted-foreground">
           © OpenStreetMap contributors · © CARTO
