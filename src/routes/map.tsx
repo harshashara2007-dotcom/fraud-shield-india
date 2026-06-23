@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { scamMeta, timeAgo } from "@/lib/format";
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/map")({
   head: () => ({ meta: [{ title: "Live Fraud Map — ScanScam" }] }),
+  ssr: false,
   component: MapScreen,
 });
 
@@ -23,25 +26,11 @@ type Report = {
 
 const FILTERS = ["All", "UPI", "KYC", "Job", "Lottery", "Phone", "Link"] as const;
 
-declare global {
-  interface Window {
-    google: any;
-    initScanScamMap?: () => void;
-  }
-}
-
 function MapScreen() {
-  const mapEl = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<Map<string, any>>(new Map());
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
-  const [stats, setStats] = useState({ today: 0, cities: 0, top: "—" });
-  const [topCities, setTopCities] = useState<{ city: string; count: number }[]>([]);
-  const [mapReady, setMapReady] = useState(false);
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+  const [recenter, setRecenter] = useState<[number, number] | null>(null);
 
-  // Load reports + realtime
   useEffect(() => {
     let mounted = true;
     supabase
@@ -72,100 +61,28 @@ function MapScreen() {
     };
   }, []);
 
-  // Stats
-  useEffect(() => {
+  const stats = useMemo(() => {
     const today = reports.filter((r) => Date.now() - new Date(r.created_at).getTime() < 86400000).length;
     const counts = new Map<string, number>();
     reports.forEach((r) => r.city && counts.set(r.city, (counts.get(r.city) ?? 0) + 1));
     const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
-    setStats({ today, cities: counts.size, top: sorted[0]?.[0] ?? "—" });
-    setTopCities(sorted.slice(0, 10).map(([city, count]) => ({ city, count })));
+    return {
+      today,
+      cities: counts.size,
+      top: sorted[0]?.[0] ?? "—",
+      topCities: sorted.slice(0, 10).map(([city, count]) => ({ city, count })),
+    };
   }, [reports]);
 
-  // Load Google Maps script
-  useEffect(() => {
-    if (!apiKey || mapReady) return;
-    if (window.google?.maps) {
-      setMapReady(true);
-      return;
-    }
-    window.initScanScamMap = () => setMapReady(true);
-    const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async&callback=initScanScamMap`;
-    s.async = true;
-    s.defer = true;
-    document.head.appendChild(s);
-  }, [apiKey, mapReady]);
-
-  // Init map
-  useEffect(() => {
-    if (!mapReady || !mapEl.current || mapRef.current) return;
-    mapRef.current = new window.google.maps.Map(mapEl.current, {
-      center: { lat: 20.5937, lng: 78.9629 },
-      zoom: 5,
-      disableDefaultUI: true,
-      zoomControl: true,
-      gestureHandling: "greedy",
-      styles: [
-        { elementType: "geometry", stylers: [{ color: "#0A1628" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#0A1628" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#8FA3BF" }] },
-        { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#1E3A5F" }] },
-        { featureType: "water", elementType: "geometry", stylers: [{ color: "#071221" }] },
-        { featureType: "road", elementType: "geometry", stylers: [{ color: "#1E3A5F" }] },
-        { featureType: "poi", stylers: [{ visibility: "off" }] },
-      ],
-    });
-  }, [mapReady]);
-
-  // Sync markers
-  useEffect(() => {
-    if (!mapRef.current || !window.google?.maps) return;
-    const visible = reports.filter((r) => {
-      if (!r.lat || !r.lng) return false;
-      if (filter === "All") return true;
-      return r.type === filter;
-    });
-    const seen = new Set<string>();
-    for (const r of visible) {
-      seen.add(r.id);
-      if (markersRef.current.has(r.id)) continue;
-      const color = r.type === "Lottery" || r.type === "KYC" ? "#FF9500" : "#FF2D55";
-      const marker = new window.google.maps.Marker({
-        position: { lat: r.lat!, lng: r.lng! },
-        map: mapRef.current,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: color,
-          fillOpacity: 0.85,
-          strokeColor: "#fff",
-          strokeWeight: 1.5,
-        },
-        title: `${r.type} · ${r.city}`,
-      });
-      const info = new window.google.maps.InfoWindow({
-        content: `<div style="color:#0A1628;min-width:160px;font-family:Inter,sans-serif"><strong>${scamMeta(r.type).emoji} ${scamMeta(r.type).label}</strong><br/><span style="font-size:12px">${r.city ?? ""} · ${timeAgo(r.created_at)}</span>${r.description ? `<br/><span style="font-size:12px;color:#555">${r.description}</span>` : ""}</div>`,
-      });
-      marker.addListener("click", () => info.open(mapRef.current, marker));
-      markersRef.current.set(r.id, marker);
-    }
-    // Remove filtered out
-    for (const [id, m] of markersRef.current) {
-      if (!seen.has(id)) {
-        m.setMap(null);
-        markersRef.current.delete(id);
-      }
-    }
-  }, [reports, filter, mapReady]);
+  const visible = useMemo(
+    () => reports.filter((r) => r.lat != null && r.lng != null && (filter === "All" || r.type === filter)),
+    [reports, filter],
+  );
 
   function nearMe() {
     if (!navigator.geolocation) return toast.error("Geolocation not supported");
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        mapRef.current?.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        mapRef.current?.setZoom(11);
-      },
+      (pos) => setRecenter([pos.coords.latitude, pos.coords.longitude]),
       () => toast.error("Location permission denied"),
     );
   }
@@ -188,22 +105,55 @@ function MapScreen() {
         </div>
 
         <div className="relative">
-          <div ref={mapEl} className="h-[55vh] w-full overflow-hidden rounded-2xl border border-border bg-card" />
-          {!apiKey && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-2xl bg-card/95 p-6 text-center text-sm">
-              <MapPin className="h-8 w-8 text-muted-foreground" />
-              <p className="font-semibold">Add your Google Maps API key</p>
-              <p className="text-xs text-muted-foreground">Set VITE_GOOGLE_MAPS_API_KEY to load the live fraud map.</p>
-            </div>
-          )}
-          {apiKey && !mapReady && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-card/80">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
+          <div className="h-[55vh] w-full overflow-hidden rounded-2xl border border-border bg-[#071221]">
+            <MapContainer
+              center={[20.5937, 78.9629]}
+              zoom={5}
+              scrollWheelZoom
+              style={{ height: "100%", width: "100%", background: "#071221" }}
+              attributionControl={false}
+            >
+              <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                subdomains={["a", "b", "c", "d"]}
+                maxZoom={19}
+              />
+              {visible.map((r) => {
+                const isWarn = r.type === "Lottery" || r.type === "KYC";
+                const color = isWarn ? "#FF9500" : "#FF2D55";
+                return (
+                  <CircleMarker
+                    key={r.id}
+                    center={[r.lat!, r.lng!]}
+                    radius={7}
+                    pathOptions={{ color: "#ffffff", weight: 1.5, fillColor: color, fillOpacity: 0.85 }}
+                  >
+                    <Popup>
+                      <div style={{ minWidth: 160, fontFamily: "Inter, sans-serif" }}>
+                        <strong>
+                          {scamMeta(r.type).emoji} {scamMeta(r.type).label}
+                        </strong>
+                        <br />
+                        <span style={{ fontSize: 12 }}>
+                          {r.city ?? ""} · {timeAgo(r.created_at)}
+                        </span>
+                        {r.description && (
+                          <>
+                            <br />
+                            <span style={{ fontSize: 12, color: "#555" }}>{r.description}</span>
+                          </>
+                        )}
+                      </div>
+                    </Popup>
+                  </CircleMarker>
+                );
+              })}
+              <Recenter to={recenter} />
+            </MapContainer>
+          </div>
           <button
             onClick={nearMe}
-            className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-2 text-xs font-bold shadow-lg border border-border"
+            className="absolute bottom-3 right-3 z-[500] flex items-center gap-1.5 rounded-full bg-card/95 px-3 py-2 text-xs font-bold shadow-lg border border-border"
           >
             <MapPin className="h-4 w-4 text-primary" /> Near me
           </button>
@@ -217,24 +167,40 @@ function MapScreen() {
 
         <section>
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Top cities</h2>
-          <ol className="space-y-1.5">
-            {topCities.map((c, i) => (
-              <li
-                key={c.city}
-                className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm"
-              >
-                <span>
-                  <span className="mr-2 inline-block w-5 text-muted-foreground">#{i + 1}</span>
-                  {c.city}
-                </span>
-                <span className="rounded-full bg-danger/15 px-2 py-0.5 text-xs font-bold text-danger">{c.count}</span>
-              </li>
-            ))}
-          </ol>
+          {stats.topCities.length === 0 ? (
+            <p className="text-xs text-muted-foreground">No reports yet.</p>
+          ) : (
+            <ol className="space-y-1.5">
+              {stats.topCities.map((c, i) => (
+                <li
+                  key={c.city}
+                  className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                >
+                  <span>
+                    <span className="mr-2 inline-block w-5 text-muted-foreground">#{i + 1}</span>
+                    {c.city}
+                  </span>
+                  <span className="rounded-full bg-danger/15 px-2 py-0.5 text-xs font-bold text-danger">{c.count}</span>
+                </li>
+              ))}
+            </ol>
+          )}
         </section>
+
+        <p className="text-center text-[10px] text-muted-foreground">
+          © OpenStreetMap contributors · © CARTO
+        </p>
       </div>
     </AppShell>
   );
+}
+
+function Recenter({ to }: { to: [number, number] | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (to) map.flyTo(to, 11);
+  }, [to, map]);
+  return null;
 }
 
 function Stat({ label, value, small = false }: { label: string; value: string | number; small?: boolean }) {
