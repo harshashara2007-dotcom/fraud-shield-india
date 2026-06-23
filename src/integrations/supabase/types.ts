@@ -125,6 +125,7 @@ export type Database = {
           id: string
           input_data: string | null
           scan_type: string | null
+          user_id: string | null
           verdict: string | null
         }
         Insert: {
@@ -132,6 +133,7 @@ export type Database = {
           id?: string
           input_data?: string | null
           scan_type?: string | null
+          user_id?: string | null
           verdict?: string | null
         }
         Update: {
@@ -139,6 +141,7 @@ export type Database = {
           id?: string
           input_data?: string | null
           scan_type?: string | null
+          user_id?: string | null
           verdict?: string | null
         }
         Relationships: []
