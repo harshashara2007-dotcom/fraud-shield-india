@@ -16,6 +16,7 @@ import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as SafebotRouteImport } from './routes/safebot'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as DeepfakeRouteImport } from './routes/deepfake'
 import { Route as CallRouteImport } from './routes/call'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -54,6 +55,11 @@ const MapRoute = MapRouteImport.update({
   path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeepfakeRoute = DeepfakeRouteImport.update({
+  id: '/deepfake',
+  path: '/deepfake',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CallRoute = CallRouteImport.update({
   id: '/call',
   path: '/call',
@@ -68,6 +74,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/call': typeof CallRoute
+  '/deepfake': typeof DeepfakeRoute
   '/map': typeof MapRoute
   '/report': typeof ReportRoute
   '/safebot': typeof SafebotRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/call': typeof CallRoute
+  '/deepfake': typeof DeepfakeRoute
   '/map': typeof MapRoute
   '/report': typeof ReportRoute
   '/safebot': typeof SafebotRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/call': typeof CallRoute
+  '/deepfake': typeof DeepfakeRoute
   '/map': typeof MapRoute
   '/report': typeof ReportRoute
   '/safebot': typeof SafebotRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/call'
+    | '/deepfake'
     | '/map'
     | '/report'
     | '/safebot'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/call'
+    | '/deepfake'
     | '/map'
     | '/report'
     | '/safebot'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/call'
+    | '/deepfake'
     | '/map'
     | '/report'
     | '/safebot'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CallRoute: typeof CallRoute
+  DeepfakeRoute: typeof DeepfakeRoute
   MapRoute: typeof MapRoute
   ReportRoute: typeof ReportRoute
   SafebotRoute: typeof SafebotRoute
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/deepfake': {
+      id: '/deepfake'
+      path: '/deepfake'
+      fullPath: '/deepfake'
+      preLoaderRoute: typeof DeepfakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/call': {
       id: '/call'
       path: '/call'
@@ -218,6 +238,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CallRoute: CallRoute,
+  DeepfakeRoute: DeepfakeRoute,
   MapRoute: MapRoute,
   ReportRoute: ReportRoute,
   SafebotRoute: SafebotRoute,

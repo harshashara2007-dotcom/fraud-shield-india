@@ -166,7 +166,7 @@ function DeepfakePage() {
   }
 
   return (
-    <AppShell header={<ScreenHeader title={<span className="flex items-center gap-2"><span>🎭</span> Deepfake Detector</span>} subtitle="Spot AI-generated fakes" backTo="/" />}>
+    <AppShell header={<ScreenHeader title={<span className="flex items-center gap-2"><span>🎭</span> Deepfake Detector</span>} subtitle="Spot AI-generated fakes" />}>
       <div className="space-y-5 px-4 pb-8 pt-5">
         {!result && !scanning && (
           <>
