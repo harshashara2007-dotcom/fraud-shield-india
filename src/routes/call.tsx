@@ -26,11 +26,13 @@ type Result = {
 };
 
 type Recent = { number: string; type: string | null; reports: number };
+type SafeMatch = { company_name: string; category: string; helpline_number: string } | null;
 
 function CallScreen() {
   const [num, setNum] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [safeMatch, setSafeMatch] = useState<SafeMatch>(null);
   const [recent, setRecent] = useState<Recent[]>([]);
   const analyze = useServerFn(analyzeCall);
 
