@@ -46,11 +46,34 @@ function CallScreen() {
   }, []);
 
   async function check() {
-    const n = num.replace(/\D/g, "").slice(-10);
-    if (n.length < 10) return toast.error("Enter a 10-digit number");
+    const digits = num.replace(/\D/g, "");
+    if (digits.length < 3) return toast.error("Enter a valid number");
     setLoading(true);
     setResult(null);
+    setSafeMatch(null);
     try {
+      // 1. Verified safe directory check (exact digits match)
+      const { data: safe } = await supabase
+        .from("safe_numbers")
+        .select("company_name,category,helpline_number")
+        .eq("helpline_number", digits)
+        .maybeSingle();
+      if (safe) {
+        setSafeMatch(safe as SafeMatch);
+        return;
+      }
+      // 2. Pattern-based safe detection (toll free / corporate landline)
+      if (isTollFreePattern(digits) || isCorporateLandline(digits)) {
+        setSafeMatch({
+          company_name: isTollFreePattern(digits) ? "Toll-free / Helpline" : "Corporate landline",
+          category: "Pattern",
+          helpline_number: digits,
+        });
+        return;
+      }
+
+      const n = digits.slice(-10);
+      if (n.length < 10) return toast.error("Enter a 10-digit number");
       const { data: bl } = await supabase
         .from("phone_blacklist")
         .select("reports,scam_type,operator,location")
