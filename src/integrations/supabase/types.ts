@@ -74,6 +74,57 @@ export type Database = {
         }
         Relationships: []
       }
+      safe_numbers: {
+        Row: {
+          category: string
+          company_name: string
+          created_at: string
+          helpline_number: string
+          id: string
+          verified: boolean
+        }
+        Insert: {
+          category: string
+          company_name: string
+          created_at?: string
+          helpline_number: string
+          id?: string
+          verified?: boolean
+        }
+        Update: {
+          category?: string
+          company_name?: string
+          created_at?: string
+          helpline_number?: string
+          id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
+      safe_sender_ids: {
+        Row: {
+          company_name: string
+          created_at: string
+          id: string
+          is_official: boolean
+          sender_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          id?: string
+          is_official?: boolean
+          sender_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          id?: string
+          is_official?: boolean
+          sender_id?: string
+        }
+        Relationships: []
+      }
       scam_reports: {
         Row: {
           amount_lost: number | null
