@@ -145,6 +145,23 @@ function CallScreen() {
           {loading ? "Checking…" : "Check number"}
         </button>
 
+        {safeMatch && (
+          <div className="space-y-2 rounded-2xl border-2 border-safe bg-safe/10 p-4 fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-safe" />
+              <p className="text-sm font-black text-safe">✅ VERIFIED SAFE NUMBER</p>
+            </div>
+            <p className="text-base font-bold">{safeMatch.company_name}</p>
+            <p className="font-mono text-sm">{safeMatch.helpline_number}</p>
+            <p className="text-xs text-foreground/80">
+              This is an official {safeMatch.category.toLowerCase()} helpline. Safe to talk to them.
+            </p>
+            <p className="rounded-lg bg-background/40 p-2 text-[11px] text-muted-foreground">
+              Reminder: even official agents will never ask for your OTP, PIN or CVV.
+            </p>
+          </div>
+        )}
+
         {result && (
           <div className="space-y-3 rounded-2xl border border-border bg-card p-4 fade-in">
             <div className="flex items-center justify-between">
