@@ -118,8 +118,10 @@ function MapScreen() {
         <div className="relative">
           <div className="h-[55vh] w-full overflow-hidden rounded-2xl border border-border bg-white">
             <MapContainer
-              center={[22.5937, 78.9629]}
+              center={[22, 80]}
               zoom={5}
+              minZoom={5}
+              maxBounds={[[6, 67], [37, 98]]}
               scrollWheelZoom
               style={{ height: "100%", width: "100%", background: "#ffffff" }}
               attributionControl={false}
@@ -230,6 +232,26 @@ function MapScreen() {
           <Stat label="Today" value={stats.today} />
           <Stat label="Cities" value={stats.cities} />
           <Stat label="Most active" value={stats.top} small />
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="px-1 pt-2 text-sm font-bold">Top cities by reports</h2>
+          {[...CITY_MARKERS].sort((a, b) => b.reports - a.reports).map((c, i) => (
+            <div
+              key={c.name}
+              className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5"
+            >
+              <span className="w-8 text-sm font-bold text-muted-foreground">#{i + 1}</span>
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ background: c.color, boxShadow: `0 0 0 3px ${c.color}22` }}
+              />
+              <span className="flex-1 font-semibold">{c.name}</span>
+              <span className="text-sm font-bold" style={{ color: c.color }}>
+                {c.reports} reports
+              </span>
+            </div>
+          ))}
         </div>
 
         <p className="text-center text-[10px] text-muted-foreground">
