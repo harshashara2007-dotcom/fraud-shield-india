@@ -118,8 +118,10 @@ function MapScreen() {
         <div className="relative">
           <div className="h-[55vh] w-full overflow-hidden rounded-2xl border border-border bg-white">
             <MapContainer
-              center={[22.5937, 78.9629]}
+              center={[22, 80]}
               zoom={5}
+              minZoom={5}
+              maxBounds={[[6, 67], [37, 98]]}
               scrollWheelZoom
               style={{ height: "100%", width: "100%", background: "#ffffff" }}
               attributionControl={false}
