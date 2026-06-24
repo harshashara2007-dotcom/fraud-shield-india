@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      deepfakes: {
+        Row: {
+          city: string | null
+          confidence: number
+          created_at: string
+          file_type: string
+          id: string
+          report_count: number
+          verdict: string
+        }
+        Insert: {
+          city?: string | null
+          confidence?: number
+          created_at?: string
+          file_type: string
+          id?: string
+          report_count?: number
+          verdict: string
+        }
+        Update: {
+          city?: string | null
+          confidence?: number
+          created_at?: string
+          file_type?: string
+          id?: string
+          report_count?: number
+          verdict?: string
+        }
+        Relationships: []
+      }
       phone_blacklist: {
         Row: {
           id: string
