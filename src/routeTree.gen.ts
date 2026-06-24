@@ -14,6 +14,7 @@ import { Route as ScreenshotRouteImport } from './routes/screenshot'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as SafebotRouteImport } from './routes/safebot'
+import { Route as SafeNumbersRouteImport } from './routes/safe-numbers'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as DeepfakeRouteImport } from './routes/deepfake'
@@ -43,6 +44,11 @@ const SafetyRoute = SafetyRouteImport.update({
 const SafebotRoute = SafebotRouteImport.update({
   id: '/safebot',
   path: '/safebot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafeNumbersRoute = SafeNumbersRouteImport.update({
+  id: '/safe-numbers',
+  path: '/safe-numbers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportRoute = ReportRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/deepfake': typeof DeepfakeRoute
   '/map': typeof MapRoute
   '/report': typeof ReportRoute
+  '/safe-numbers': typeof SafeNumbersRoute
   '/safebot': typeof SafebotRoute
   '/safety': typeof SafetyRoute
   '/scan': typeof ScanRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/deepfake': typeof DeepfakeRoute
   '/map': typeof MapRoute
   '/report': typeof ReportRoute
+  '/safe-numbers': typeof SafeNumbersRoute
   '/safebot': typeof SafebotRoute
   '/safety': typeof SafetyRoute
   '/scan': typeof ScanRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/deepfake': typeof DeepfakeRoute
   '/map': typeof MapRoute
   '/report': typeof ReportRoute
+  '/safe-numbers': typeof SafeNumbersRoute
   '/safebot': typeof SafebotRoute
   '/safety': typeof SafetyRoute
   '/scan': typeof ScanRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/deepfake'
     | '/map'
     | '/report'
+    | '/safe-numbers'
     | '/safebot'
     | '/safety'
     | '/scan'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/deepfake'
     | '/map'
     | '/report'
+    | '/safe-numbers'
     | '/safebot'
     | '/safety'
     | '/scan'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/deepfake'
     | '/map'
     | '/report'
+    | '/safe-numbers'
     | '/safebot'
     | '/safety'
     | '/scan'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   DeepfakeRoute: typeof DeepfakeRoute
   MapRoute: typeof MapRoute
   ReportRoute: typeof ReportRoute
+  SafeNumbersRoute: typeof SafeNumbersRoute
   SafebotRoute: typeof SafebotRoute
   SafetyRoute: typeof SafetyRoute
   ScanRoute: typeof ScanRoute
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/safebot'
       fullPath: '/safebot'
       preLoaderRoute: typeof SafebotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safe-numbers': {
+      id: '/safe-numbers'
+      path: '/safe-numbers'
+      fullPath: '/safe-numbers'
+      preLoaderRoute: typeof SafeNumbersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/report': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeepfakeRoute: DeepfakeRoute,
   MapRoute: MapRoute,
   ReportRoute: ReportRoute,
+  SafeNumbersRoute: SafeNumbersRoute,
   SafebotRoute: SafebotRoute,
   SafetyRoute: SafetyRoute,
   ScanRoute: ScanRoute,
