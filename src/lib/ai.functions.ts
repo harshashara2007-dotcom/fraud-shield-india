@@ -111,3 +111,44 @@ export const safebotChat = createServerFn({ method: "POST" })
     });
     return { reply: text };
   });
+
+// 6. Deepfake detection (vision)
+export const analyzeDeepfake = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z.object({ imageDataUrl: z.string().startsWith("data:image/").max(8_000_000) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const g = gateway();
+    const { text } = await generateText({
+      model: g(VISION_MODEL),
+      system: SYS,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `You are a deepfake detection AI for India. Analyze this image/video frame carefully for signs of AI manipulation: unnatural facial boundaries/blending, inconsistent lighting between face and background, blur or artifacts around hair and ears, unnatural skin smoothness, eye reflection inconsistencies, asymmetric facial features.\nReturn ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink":"NATURAL|UNNATURAL|UNKNOWN","facialBoundary":"CONSISTENT|INCONSISTENT","lighting":"NATURAL|SUSPICIOUS","lipSync":"SYNCED|MISMATCH|UNKNOWN","metadata":"ORIGINAL|SUSPICIOUS","audioAnalysis":"NATURAL|SUSPICIOUS|UNKNOWN","explanation":"one short paragraph in simple English","whatToDo":"clear next step"}`,
+            },
+            { type: "image", image: data.imageDataUrl },
+          ],
+        },
+      ],
+    });
+    try {
+      return JSON.parse(stripJsonFences(text));
+    } catch {
+      return {
+        verdict: "UNCERTAIN",
+        confidence: 50,
+        eyeBlink: "UNKNOWN",
+        facialBoundary: "INCONSISTENT",
+        lighting: "SUSPICIOUS",
+        lipSync: "UNKNOWN",
+        metadata: "SUSPICIOUS",
+        audioAnalysis: "UNKNOWN",
+        explanation: text.slice(0, 280),
+        whatToDo: "Do not share. Verify through official channels.",
+      };
+    }
+  });

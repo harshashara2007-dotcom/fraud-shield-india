@@ -58,6 +58,20 @@ function Home() {
           <ActionCard to="/call" icon={Phone} label="Check Call" hint="Spam guard" />
         </div>
 
+        {/* Deepfake — featured */}
+        <Link
+          to="/deepfake"
+          className="group flex items-center gap-4 rounded-2xl border border-[#7C3AED]/40 bg-gradient-to-br from-[#7C3AED]/20 to-[#4C1D95]/10 p-4 transition-all active:scale-[0.98] hover:border-[#7C3AED]"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7C3AED]/20 text-2xl">🎭</div>
+          <div className="flex-1">
+            <p className="text-sm font-bold">Deepfake Detector</p>
+            <p className="text-[11px] text-muted-foreground">Detect fake videos & AI-generated photos</p>
+          </div>
+          <span className="text-[#7C3AED]">→</span>
+        </Link>
+
+
         {/* 3 secondary */}
         <div className="grid grid-cols-3 gap-2">
           <SecondaryAction to="/map" icon={MapIcon} label="Fraud Map" />
