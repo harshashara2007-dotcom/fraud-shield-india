@@ -6,7 +6,8 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictBadge, TrustScore } from "@/components/VerdictBadge";
 import { analyzeCall } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, Search, Loader2, Megaphone, Volume2 } from "lucide-react";
+import { Phone, Search, Loader2, Megaphone, Volume2, CheckCircle2 } from "lucide-react";
+import { isTollFreePattern, isCorporateLandline } from "@/lib/safe-detection";
 
 export const Route = createFileRoute("/call")({
   head: () => ({ meta: [{ title: "Call Guard — ScanScam" }] }),
@@ -25,11 +26,13 @@ type Result = {
 };
 
 type Recent = { number: string; type: string | null; reports: number };
+type SafeMatch = { company_name: string; category: string; helpline_number: string } | null;
 
 function CallScreen() {
   const [num, setNum] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [safeMatch, setSafeMatch] = useState<SafeMatch>(null);
   const [recent, setRecent] = useState<Recent[]>([]);
   const analyze = useServerFn(analyzeCall);
 
@@ -43,11 +46,34 @@ function CallScreen() {
   }, []);
 
   async function check() {
-    const n = num.replace(/\D/g, "").slice(-10);
-    if (n.length < 10) return toast.error("Enter a 10-digit number");
+    const digits = num.replace(/\D/g, "");
+    if (digits.length < 3) return toast.error("Enter a valid number");
     setLoading(true);
     setResult(null);
+    setSafeMatch(null);
     try {
+      // 1. Verified safe directory check (exact digits match)
+      const { data: safe } = await supabase
+        .from("safe_numbers")
+        .select("company_name,category,helpline_number")
+        .eq("helpline_number", digits)
+        .maybeSingle();
+      if (safe) {
+        setSafeMatch(safe as SafeMatch);
+        return;
+      }
+      // 2. Pattern-based safe detection (toll free / corporate landline)
+      if (isTollFreePattern(digits) || isCorporateLandline(digits)) {
+        setSafeMatch({
+          company_name: isTollFreePattern(digits) ? "Toll-free / Helpline" : "Corporate landline",
+          category: "Pattern",
+          helpline_number: digits,
+        });
+        return;
+      }
+
+      const n = digits.slice(-10);
+      if (n.length < 10) return toast.error("Enter a 10-digit number");
       const { data: bl } = await supabase
         .from("phone_blacklist")
         .select("reports,scam_type,operator,location")
@@ -118,6 +144,23 @@ function CallScreen() {
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
           {loading ? "Checking…" : "Check number"}
         </button>
+
+        {safeMatch && (
+          <div className="space-y-2 rounded-2xl border-2 border-safe bg-safe/10 p-4 fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-safe" />
+              <p className="text-sm font-black text-safe">✅ VERIFIED SAFE NUMBER</p>
+            </div>
+            <p className="text-base font-bold">{safeMatch.company_name}</p>
+            <p className="font-mono text-sm">{safeMatch.helpline_number}</p>
+            <p className="text-xs text-foreground/80">
+              This is an official {safeMatch.category.toLowerCase()} helpline. Safe to talk to them.
+            </p>
+            <p className="rounded-lg bg-background/40 p-2 text-[11px] text-muted-foreground">
+              Reminder: even official agents will never ask for your OTP, PIN or CVV.
+            </p>
+          </div>
+        )}
 
         {result && (
           <div className="space-y-3 rounded-2xl border border-border bg-card p-4 fade-in">

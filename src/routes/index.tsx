@@ -72,9 +72,23 @@ function Home() {
         </Link>
 
 
-        {/* 3 secondary */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Safe detection — featured */}
+        <Link
+          to="/safe-check"
+          className="group flex items-center gap-4 rounded-2xl border border-safe/40 bg-gradient-to-br from-safe/15 to-safe/5 p-4 transition-all active:scale-[0.98] hover:border-safe"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-safe/20 text-2xl">✅</div>
+          <div className="flex-1">
+            <p className="text-sm font-bold">Genuine or Scam?</p>
+            <p className="text-[11px] text-muted-foreground">Paste a message — live safety score</p>
+          </div>
+          <span className="text-safe">→</span>
+        </Link>
+
+        {/* 4 secondary */}
+        <div className="grid grid-cols-4 gap-2">
           <SecondaryAction to="/map" icon={MapIcon} label="Fraud Map" />
+          <SecondaryAction to="/safe-numbers" icon={ShieldCheck} label="Safe Nos." />
           <SecondaryAction to="/report" icon={Megaphone} label="Report" />
           <SecondaryAction to="/safebot" icon={Bot} label="SafeBot" />
         </div>
