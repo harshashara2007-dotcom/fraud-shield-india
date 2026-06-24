@@ -6,7 +6,8 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictBadge, TrustScore } from "@/components/VerdictBadge";
 import { analyzeCall } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, Search, Loader2, Megaphone, Volume2 } from "lucide-react";
+import { Phone, Search, Loader2, Megaphone, Volume2, CheckCircle2 } from "lucide-react";
+import { isTollFreePattern, isCorporateLandline } from "@/lib/safe-detection";
 
 export const Route = createFileRoute("/call")({
   head: () => ({ meta: [{ title: "Call Guard — ScanScam" }] }),
