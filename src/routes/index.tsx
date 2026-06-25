@@ -85,6 +85,19 @@ function Home() {
           <span className="text-safe">→</span>
         </Link>
 
+        {/* Analytics — featured */}
+        <Link
+          to="/analytics"
+          className="group flex items-center gap-4 rounded-2xl border border-[#7C3AED]/40 bg-gradient-to-br from-[#7C3AED]/20 to-[#4C1D95]/10 p-4 transition-all active:scale-[0.98] hover:border-[#7C3AED]"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7C3AED]/20 text-2xl">📊</div>
+          <div className="flex-1">
+            <p className="text-sm font-bold">Fraud Analytics</p>
+            <p className="text-[11px] text-muted-foreground">Live India data · charts & trends</p>
+          </div>
+          <span className="text-[#7C3AED]">→</span>
+        </Link>
+
         {/* 4 secondary */}
         <div className="grid grid-cols-4 gap-2">
           <SecondaryAction to="/map" icon={MapIcon} label="Fraud Map" />
@@ -92,6 +105,11 @@ function Home() {
           <SecondaryAction to="/report" icon={Megaphone} label="Report" />
           <SecondaryAction to="/safebot" icon={Bot} label="SafeBot" />
         </div>
+        <div className="grid grid-cols-2 gap-2">
+          <SecondaryAction to="/analytics" icon={BarChart3} label="Analytics" />
+          <SecondaryAction to="/call" icon={Phone} label="Truecaller Check" />
+        </div>
+
 
         {/* Scam of the day */}
         <section className="rounded-2xl border-2 border-warning/60 bg-warning/10 p-4">
