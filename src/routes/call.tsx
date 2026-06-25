@@ -189,6 +189,14 @@ function CallScreen() {
           </div>
         )}
 
+        {num.replace(/\D/g, "").length >= 10 && (
+          <TruecallerCard number={num.replace(/\D/g, "").slice(-10)} reports={result?.reports ?? 0} />
+        )}
+
+        <BlockedList />
+
+
+
         <section>
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             <Phone className="mr-1 inline h-3 w-3" /> Most reported numbers
