@@ -121,3 +121,39 @@
 }
 .leaflet-tooltip.city-label::before { display: none; }
 .scam-pulse { animation: pulse-dot 1.8s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+
+/* Splash */
+@keyframes shieldAppear {
+  0% { transform: scale(0.1); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes shieldPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@keyframes splashScan {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes letterAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashFlash {
+  0% { opacity: 0; }
+  40% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+@keyframes splashTagline {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.splash-shield { animation: shieldAppear 500ms cubic-bezier(0.16, 1, 0.3, 1) 300ms both; }
+.splash-pulse { animation: shieldPulse 900ms ease-in-out 800ms; transform-origin: center; }
+.splash-scan { top: 0; animation: splashScan 700ms linear 800ms 1 both; }
+.splash-letter { opacity: 0; animation: letterAppear 240ms ease-out both; }
+.splash-tagline { animation: splashTagline 400ms ease-out 2000ms both; }
+.splash-flash { animation: splashFlash 400ms ease-out both; }
+

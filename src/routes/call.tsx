@@ -189,6 +189,14 @@ function CallScreen() {
           </div>
         )}
 
+        {num.replace(/\D/g, "").length >= 10 && (
+          <TruecallerCard number={num.replace(/\D/g, "").slice(-10)} reports={result?.reports ?? 0} />
+        )}
+
+        <BlockedList />
+
+
+
         <section>
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             <Phone className="mr-1 inline h-3 w-3" /> Most reported numbers
@@ -222,3 +230,153 @@ function Cell({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function detectOperator(n: string): string {
+  if (/^(9415|9450|9451|9452|9453|9454|9455)/.test(n)) return "BSNL";
+  const f = n[0];
+  if (f === "6" || f === "7") return "Jio";
+  if (f === "8") return "Airtel";
+  if (f === "9") return "Airtel";
+  return "Unknown";
+}
+
+function TruecallerCard({ number, reports }: { number: string; reports: number }) {
+  const [tcResult, setTcResult] = useState<"safe" | "unknown" | "spam" | null>(null);
+  const operator = detectOperator(number);
+
+  function openTruecaller() {
+    const tcUrl = `truecaller://call/+91${number}`;
+    const webUrl = `https://www.truecaller.com/search/in/${number}`;
+    const start = Date.now();
+    window.location.href = tcUrl;
+    setTimeout(() => {
+      if (Date.now() - start < 1600) window.open(webUrl, "_blank");
+    }, 800);
+  }
+
+  function shareToTruecaller() {
+    window.location.href = `truecaller://report/+91${number}`;
+  }
+
+  function blockNumber() {
+    const list: string[] = JSON.parse(localStorage.getItem("blocked_numbers") || "[]");
+    if (!list.includes(number)) {
+      list.push(number);
+      localStorage.setItem("blocked_numbers", JSON.stringify(list));
+      toast.success("Number blocked");
+    } else toast.info("Already blocked");
+  }
+
+  const confirmed = reports >= 10;
+  const score = Math.min(100, reports * 4 + (tcResult === "spam" ? 40 : tcResult === "unknown" ? 15 : 0));
+  const verdict = score >= 70 ? "HIGH RISK" : score >= 30 ? "SUSPICIOUS" : "LIKELY OK";
+  const verdictColor = score >= 70 ? "text-danger" : score >= 30 ? "text-warning" : "text-safe";
+
+  return (
+    <div className="space-y-3 rounded-2xl border border-border bg-card p-4 fade-in">
+      <div className="flex items-center gap-2">
+        <Phone className="h-4 w-4 text-action" />
+        <h3 className="text-sm font-black uppercase tracking-wider">Truecaller Check</h3>
+      </div>
+
+      <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3">
+        <p className="font-mono text-lg font-bold">📱 +91 {number}</p>
+        {confirmed && (
+          <span className="inline-block rounded-md bg-danger px-2 py-0.5 text-[10px] font-black uppercase text-white">
+            CONFIRMED SPAM
+          </span>
+        )}
+        <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
+          <div><span className="text-muted-foreground">Operator:</span> <b>{operator}</b></div>
+          <div><span className="text-muted-foreground">Type:</span> <b>Mobile</b></div>
+          <div><span className="text-muted-foreground">Reports:</span> <b className="text-danger">{reports}</b></div>
+          <div><span className="text-muted-foreground">Region:</span> <b>India</b></div>
+        </div>
+      </div>
+
+      <p className="text-xs text-muted-foreground">
+        Cross-check this number on Truecaller and bring the result back for combined fraud analysis.
+      </p>
+
+      <button
+        onClick={openTruecaller}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-action py-3 text-sm font-bold text-white active:scale-[0.98]"
+      >
+        🔍 Check on Truecaller
+      </button>
+
+      <div>
+        <p className="mb-1.5 text-xs font-bold text-muted-foreground">What did Truecaller show?</p>
+        <div className="grid grid-cols-3 gap-2">
+          {([
+            ["safe", "✅ Safe", "bg-safe/15 text-safe border-safe/40"],
+            ["unknown", "⚠️ Unknown", "bg-warning/15 text-warning border-warning/40"],
+            ["spam", "🚨 Spam", "bg-danger/15 text-danger border-danger/40"],
+          ] as const).map(([k, label, cls]) => (
+            <button
+              key={k}
+              onClick={() => setTcResult(k)}
+              className={`rounded-lg border px-2 py-2 text-[11px] font-bold ${cls} ${tcResult === k ? "ring-2 ring-current" : "opacity-70"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {tcResult && (
+        <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3 fade-in">
+          <p className="text-[11px] font-bold uppercase text-muted-foreground">Combined Fraud Score</p>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className={`text-2xl font-black ${verdictColor}`}>{score}%</p>
+              <p className={`text-xs font-bold ${verdictColor}`}>{verdict}</p>
+            </div>
+            <div className="text-right text-[11px]">
+              <p>ScanScam DB: <b>{reports} reports</b></p>
+              <p>Truecaller: <b className="capitalize">{tcResult}</b></p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={blockNumber} className="rounded-xl border border-danger bg-danger/10 py-2.5 text-xs font-bold text-danger active:scale-[0.98]">
+          🚨 Block
+        </button>
+        <button onClick={shareToTruecaller} className="rounded-xl border border-border bg-muted/40 py-2.5 text-xs font-bold active:scale-[0.98]">
+          📤 Share to TC
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BlockedList() {
+  const [list, setList] = useState<string[]>([]);
+  useEffect(() => {
+    try { setList(JSON.parse(localStorage.getItem("blocked_numbers") || "[]")); } catch { /* ignore */ }
+  }, []);
+  function unblock(n: string) {
+    const next = list.filter((x) => x !== n);
+    setList(next);
+    localStorage.setItem("blocked_numbers", JSON.stringify(next));
+  }
+  if (list.length === 0) return null;
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4">
+      <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        You have blocked {list.length} number{list.length === 1 ? "" : "s"}
+      </h3>
+      <ul className="space-y-1.5">
+        {list.map((n) => (
+          <li key={n} className="flex items-center justify-between rounded-lg bg-background/40 px-3 py-2 text-sm">
+            <span className="font-mono">+91 {n}</span>
+            <button onClick={() => unblock(n)} className="text-[11px] font-bold text-action">Unblock</button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
