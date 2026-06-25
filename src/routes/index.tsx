@@ -3,7 +3,7 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { LiveTicker } from "@/components/LiveTicker";
 import { ScamFeed } from "@/components/ScamFeed";
 import { scamOfDay } from "@/lib/format";
-import { ScanLine, CreditCard, Image as ImageIcon, Phone, Map as MapIcon, Megaphone, Bot, ShieldCheck } from "lucide-react";
+import { ScanLine, CreditCard, Image as ImageIcon, Phone, Map as MapIcon, Megaphone, Bot, ShieldCheck, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
