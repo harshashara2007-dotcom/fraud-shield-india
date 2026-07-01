@@ -148,6 +148,11 @@ function Home() {
         <p className="pt-2 text-center text-[11px] text-muted-foreground">
           <ShieldCheck className="mr-1 inline h-3 w-3" /> ScanScam · Made with ❤️ for India
         </p>
+        <p className="text-center text-[11px]">
+          <Link to="/privacy-policy" className="text-action">Privacy Policy</Link>
+          <span className="mx-2 text-muted-foreground">·</span>
+          <Link to="/landing" className="text-action">For Business</Link>
+        </p>
       </div>
     </AppShell>
   );
