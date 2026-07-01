@@ -17,7 +17,9 @@ import { Route as SafebotRouteImport } from './routes/safebot'
 import { Route as SafeNumbersRouteImport } from './routes/safe-numbers'
 import { Route as SafeCheckRouteImport } from './routes/safe-check'
 import { Route as ReportRouteImport } from './routes/report'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as LandingRouteImport } from './routes/landing'
 import { Route as DeepfakeRouteImport } from './routes/deepfake'
 import { Route as CallRouteImport } from './routes/call'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -63,9 +65,19 @@ const ReportRoute = ReportRouteImport.update({
   path: '/report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeepfakeRoute = DeepfakeRouteImport.update({
@@ -94,7 +106,9 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
+  '/landing': typeof LandingRoute
   '/map': typeof MapRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/safe-check': typeof SafeCheckRoute
   '/safe-numbers': typeof SafeNumbersRoute
@@ -109,7 +123,9 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
+  '/landing': typeof LandingRoute
   '/map': typeof MapRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/safe-check': typeof SafeCheckRoute
   '/safe-numbers': typeof SafeNumbersRoute
@@ -125,7 +141,9 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
+  '/landing': typeof LandingRoute
   '/map': typeof MapRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
   '/safe-check': typeof SafeCheckRoute
   '/safe-numbers': typeof SafeNumbersRoute
@@ -142,7 +160,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/call'
     | '/deepfake'
+    | '/landing'
     | '/map'
+    | '/privacy-policy'
     | '/report'
     | '/safe-check'
     | '/safe-numbers'
@@ -157,7 +177,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/call'
     | '/deepfake'
+    | '/landing'
     | '/map'
+    | '/privacy-policy'
     | '/report'
     | '/safe-check'
     | '/safe-numbers'
@@ -172,7 +194,9 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/call'
     | '/deepfake'
+    | '/landing'
     | '/map'
+    | '/privacy-policy'
     | '/report'
     | '/safe-check'
     | '/safe-numbers'
@@ -188,7 +212,9 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   CallRoute: typeof CallRoute
   DeepfakeRoute: typeof DeepfakeRoute
+  LandingRoute: typeof LandingRoute
   MapRoute: typeof MapRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ReportRoute: typeof ReportRoute
   SafeCheckRoute: typeof SafeCheckRoute
   SafeNumbersRoute: typeof SafeNumbersRoute
@@ -257,11 +283,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/map': {
       id: '/map'
       path: '/map'
       fullPath: '/map'
       preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deepfake': {
@@ -300,7 +340,9 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   CallRoute: CallRoute,
   DeepfakeRoute: DeepfakeRoute,
+  LandingRoute: LandingRoute,
   MapRoute: MapRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ReportRoute: ReportRoute,
   SafeCheckRoute: SafeCheckRoute,
   SafeNumbersRoute: SafeNumbersRoute,

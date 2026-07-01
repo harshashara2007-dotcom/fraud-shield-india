@@ -137,7 +137,7 @@ function CallScreen() {
         ai,
         recent: (recentReports ?? []).map((r) => ({
           text: r.description ?? r.type ?? "Reported",
-          at: r.created_at,
+          at: r.created_at ?? new Date().toISOString(),
         })),
       };
 
