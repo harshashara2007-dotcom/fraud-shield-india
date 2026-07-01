@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { toast } from "sonner";
+import { loadScanHistory, type ScanEntry } from "@/lib/scan-history";
 
 export const Route = createFileRoute("/safety")({
   head: () => ({ meta: [{ title: "Safety Score — ScanScam" }] }),
@@ -12,10 +13,15 @@ type Safety = { scans: number; reports: number; quiz: boolean; pwa: boolean };
 const KEY = "ss_safety";
 
 function loadSafety(): Safety {
-  try { return { scans: 0, reports: 0, quiz: false, pwa: false, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") }; }
-  catch { return { scans: 0, reports: 0, quiz: false, pwa: false }; }
+  try {
+    return { scans: 0, reports: 0, quiz: false, pwa: false, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") };
+  } catch {
+    return { scans: 0, reports: 0, quiz: false, pwa: false };
+  }
 }
-function saveSafety(s: Safety) { localStorage.setItem(KEY, JSON.stringify(s)); }
+function saveSafety(s: Safety) {
+  localStorage.setItem(KEY, JSON.stringify(s));
+}
 
 function computeScore(s: Safety) {
   let n = 0;
@@ -41,18 +47,42 @@ const QUIZ = [
   { q: "A 'job' wants ₹2000 registration fee. You:", opts: ["Pay — it's only 2k", "Refuse — real jobs never charge", "Negotiate"], a: 1 },
 ];
 
+const KIND_ICON: Record<ScanEntry["kind"], string> = {
+  QR: "📷",
+  UPI: "💳",
+  Screenshot: "🖼️",
+  Call: "📞",
+  Deepfake: "🎭",
+};
+const VERDICT_COLOR: Record<ScanEntry["verdict"], string> = {
+  DANGER: "#FF2D55",
+  SAFE: "#00C853",
+  SUSPICIOUS: "#FF9500",
+  UNKNOWN: "#8899aa",
+};
+
+function fmtAgo(iso: string) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
 function SafetyScreen() {
   const [safety, setSafety] = useState<Safety>(() => loadSafety());
   const [quizOpen, setQuizOpen] = useState(false);
   const [qIdx, setQIdx] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [family, setFamily] = useState("");
+  const [history, setHistory] = useState<ScanEntry[]>([]);
 
   useEffect(() => {
     if (window.matchMedia?.("(display-mode: standalone)").matches) {
       const s = { ...safety, pwa: true };
-      setSafety(s); saveSafety(s);
+      setSafety(s);
+      saveSafety(s);
     }
+    setHistory(loadScanHistory());
   }, []);
 
   const score = computeScore(safety);
@@ -63,20 +93,15 @@ function SafetyScreen() {
     if (isRight) setCorrect((c) => c + 1);
     if (qIdx + 1 < QUIZ.length) setQIdx(qIdx + 1);
     else {
-      const passed = (correct + (isRight ? 1 : 0)) >= 3;
+      const passed = correct + (isRight ? 1 : 0) >= 3;
       const s = { ...safety, quiz: passed || safety.quiz };
-      setSafety(s); saveSafety(s);
+      setSafety(s);
+      saveSafety(s);
       setQuizOpen(false);
-      setQIdx(0); setCorrect(0);
+      setQIdx(0);
+      setCorrect(0);
       toast.success(passed ? "Quiz passed — +20 safety points!" : "Keep learning — try again!");
     }
-  }
-
-  function shareWithFamily() {
-    const n = family.replace(/\D/g, "");
-    if (n.length < 10) return toast.error("Enter a valid number");
-    const text = "Hey! 👋 Stay safe from scams in India — install ScanScam to check UPI IDs, scan QR codes, and identify scam calls instantly. 🛡️";
-    window.open(`https://wa.me/91${n}?text=${encodeURIComponent(text)}`, "_blank");
   }
 
   return (
@@ -87,7 +112,9 @@ function SafetyScreen() {
           <div
             className="relative flex h-44 w-44 items-center justify-center rounded-full"
             style={{
-              background: `conic-gradient(${score <= 40 ? "#FF2D55" : score <= 70 ? "#FF9500" : "#00C853"} ${score * 3.6}deg, #1E3A5F 0deg)`,
+              background: `conic-gradient(${
+                score <= 40 ? "#FF2D55" : score <= 70 ? "#FF9500" : "#00C853"
+              } ${score * 3.6}deg, #1E3A5F 0deg)`,
             }}
           >
             <div className="flex h-36 w-36 flex-col items-center justify-center rounded-full bg-card">
@@ -129,32 +156,63 @@ function SafetyScreen() {
           Take 5-question safety quiz (+20 pts)
         </button>
 
-        {/* Family */}
-        <section className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Protect your family</p>
-          <p className="mt-1 text-sm">Send a safety tip to a family member on WhatsApp.</p>
-          <div className="mt-2 flex gap-2">
-            <input
-              type="tel"
-              placeholder="Phone (10 digits)"
-              value={family}
-              onChange={(e) => setFamily(e.target.value)}
-              className="flex-1 rounded-lg border border-border bg-muted px-3 py-2 text-sm"
-            />
-            <button onClick={shareWithFamily} className="rounded-lg bg-safe px-3 text-xs font-bold text-white">
-              Send
-            </button>
-          </div>
+        {/* Scan History */}
+        <section>
+          <h2 className="mb-2 text-sm font-bold">Your Scan History 🔍</h2>
+          {history.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-6 text-center">
+              <p className="text-2xl">🔍</p>
+              <p className="mt-2 text-sm font-bold">No scans yet</p>
+              <p className="text-xs text-muted-foreground">
+                Start scanning to build your safety history!
+              </p>
+              <Link
+                to="/scan"
+                className="mt-3 inline-block rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white"
+              >
+                Scan QR Code
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-1.5">
+              {history.slice(0, 10).map((h, i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl bg-card px-3 py-2.5"
+                  style={{ borderLeft: `3px solid ${VERDICT_COLOR[h.verdict]}` }}
+                >
+                  <span className="text-lg">{KIND_ICON[h.kind]}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm font-semibold">
+                      {h.kind} — <span className="truncate text-xs text-muted-foreground">{h.label}</span>
+                    </p>
+                  </div>
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                    style={{ background: VERDICT_COLOR[h.verdict] + "22", color: VERDICT_COLOR[h.verdict] }}
+                  >
+                    {h.verdict}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{fmtAgo(h.at)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {/* Quiz overlay */}
         {quizOpen && (
-          <div className="fixed inset-0 z-40 flex items-end bg-black/60 sm:items-center sm:justify-center" onClick={() => setQuizOpen(false)}>
+          <div
+            className="fixed inset-0 z-40 flex items-end bg-black/60 sm:items-center sm:justify-center"
+            onClick={() => setQuizOpen(false)}
+          >
             <div
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-[430px] rounded-t-2xl border-t border-border bg-card p-5 sm:rounded-2xl"
             >
-              <p className="text-xs text-muted-foreground">Question {qIdx + 1} of {QUIZ.length}</p>
+              <p className="text-xs text-muted-foreground">
+                Question {qIdx + 1} of {QUIZ.length}
+              </p>
               <h3 className="mt-1 text-base font-bold">{QUIZ[qIdx].q}</h3>
               <div className="mt-4 space-y-2">
                 {QUIZ[qIdx].opts.map((o, i) => (
@@ -191,7 +249,11 @@ function CatBar({ label, value }: { label: string; value: number }) {
 
 function Badge({ emoji, name, earned }: { emoji: string; name: string; earned: boolean }) {
   return (
-    <div className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-center ${earned ? "border-safe/60 bg-safe/5" : "border-border bg-card opacity-50"}`}>
+    <div
+      className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-center ${
+        earned ? "border-safe/60 bg-safe/5" : "border-border bg-card opacity-50"
+      }`}
+    >
       <span className="text-2xl">{emoji}</span>
       <span className="text-[11px] font-semibold leading-tight">{name}</span>
     </div>
