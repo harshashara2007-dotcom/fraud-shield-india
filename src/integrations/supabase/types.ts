@@ -232,7 +232,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_reports_by_phone: {
+        Args: { _limit?: number; _phone: string }
+        Returns: {
+          created_at: string
+          description: string
+          type: string
+        }[]
+      }
+      increment_phone_report: {
+        Args: {
+          _location?: string
+          _number: string
+          _operator?: string
+          _scam_type?: string
+        }
+        Returns: undefined
+      }
+      increment_upi_report: {
+        Args: { _scam_type?: string; _upi_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
