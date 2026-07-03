@@ -164,24 +164,13 @@ function CallScreen() {
       phone: n,
       description: dangerInfo.ai.warningMessage ?? "Reported via Call Guard",
     });
-    const { data: existing } = await supabase
-      .from("phone_blacklist")
-      .select("id,reports")
-      .eq("number", n)
-      .maybeSingle();
-    if (existing) {
-      await supabase
-        .from("phone_blacklist")
-        .update({ reports: (existing.reports ?? 0) + 1, last_reported: new Date().toISOString() })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("phone_blacklist").insert({
-        number: n,
-        scam_type: dangerInfo.ai.spamCategory ?? "Phone",
-        operator: dangerInfo.operator,
-        location: dangerInfo.location,
-      });
-    }
+    await supabase.rpc("increment_phone_report", {
+      _number: n,
+      _scam_type: dangerInfo.ai.spamCategory ?? "Phone",
+      _operator: dangerInfo.operator ?? null,
+      _location: dangerInfo.location ?? null,
+    });
+
     toast.success("Reported. Thank you 🛡️");
   }
 
