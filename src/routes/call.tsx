@@ -167,9 +167,10 @@ function CallScreen() {
     await supabase.rpc("increment_phone_report", {
       _number: n,
       _scam_type: dangerInfo.ai.spamCategory ?? "Phone",
-      _operator: dangerInfo.operator ?? null,
-      _location: dangerInfo.location ?? null,
+      _operator: dangerInfo.operator ?? undefined,
+      _location: dangerInfo.location ?? undefined,
     });
+
 
     toast.success("Reported. Thank you 🛡️");
   }
