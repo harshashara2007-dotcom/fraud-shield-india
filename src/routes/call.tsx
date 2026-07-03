@@ -110,12 +110,11 @@ function CallScreen() {
         .maybeSingle();
 
       // 3. Recent reports
-      const { data: recentReports } = await supabase
-        .from("scam_reports")
-        .select("description,created_at,type")
-        .eq("phone", n)
-        .order("created_at", { ascending: false })
-        .limit(5);
+      const { data: recentReports } = await supabase.rpc("get_reports_by_phone", {
+        _phone: n,
+        _limit: 5,
+      });
+
 
       // 4. AI
       let ai: AiResult = {};
