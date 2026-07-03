@@ -241,9 +241,10 @@ Generated: ${new Date().toLocaleString()}`;
                   label={(e: any) => `${Math.round((e.percent ?? 0) * 100)}%`}
                   labelLine={false}
                 >
-                  {typeData.map((entry) => (
-                    <Cell key={entry.name} fill={TYPE_COLORS[entry.name] ?? "#8899aa"} />
+                  {typeData.map((entry, i) => (
+                    <Cell key={entry.name} fill={colorForType(entry.name, i)} />
                   ))}
+
                 </Pie>
                 <Legend wrapperStyle={{ fontSize: 11, color: "#8FA3BF" }} />
                 <Tooltip contentStyle={tooltipStyle} />
