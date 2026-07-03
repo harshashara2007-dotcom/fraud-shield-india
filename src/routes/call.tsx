@@ -110,12 +110,11 @@ function CallScreen() {
         .maybeSingle();
 
       // 3. Recent reports
-      const { data: recentReports } = await supabase
-        .from("scam_reports")
-        .select("description,created_at,type")
-        .eq("phone", n)
-        .order("created_at", { ascending: false })
-        .limit(5);
+      const { data: recentReports } = await supabase.rpc("get_reports_by_phone", {
+        _phone: n,
+        _limit: 5,
+      });
+
 
       // 4. AI
       let ai: AiResult = {};
@@ -165,24 +164,14 @@ function CallScreen() {
       phone: n,
       description: dangerInfo.ai.warningMessage ?? "Reported via Call Guard",
     });
-    const { data: existing } = await supabase
-      .from("phone_blacklist")
-      .select("id,reports")
-      .eq("number", n)
-      .maybeSingle();
-    if (existing) {
-      await supabase
-        .from("phone_blacklist")
-        .update({ reports: (existing.reports ?? 0) + 1, last_reported: new Date().toISOString() })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("phone_blacklist").insert({
-        number: n,
-        scam_type: dangerInfo.ai.spamCategory ?? "Phone",
-        operator: dangerInfo.operator,
-        location: dangerInfo.location,
-      });
-    }
+    await supabase.rpc("increment_phone_report", {
+      _number: n,
+      _scam_type: dangerInfo.ai.spamCategory ?? "Phone",
+      _operator: dangerInfo.operator ?? undefined,
+      _location: dangerInfo.location ?? undefined,
+    });
+
+
     toast.success("Reported. Thank you 🛡️");
   }
 

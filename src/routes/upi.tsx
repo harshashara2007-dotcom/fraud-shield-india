@@ -88,20 +88,8 @@ function UpiScreen() {
       upi_id: id,
       description: result?.reason ?? "Reported via UPI check",
     });
-    // upsert blacklist
-    const { data: existing } = await supabase
-      .from("upi_blacklist")
-      .select("id,reports")
-      .eq("upi_id", id)
-      .maybeSingle();
-    if (existing) {
-      await supabase
-        .from("upi_blacklist")
-        .update({ reports: (existing.reports ?? 0) + 1, last_reported: new Date().toISOString() })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("upi_blacklist").insert({ upi_id: id, scam_type: "UPI" });
-    }
+    await supabase.rpc("increment_upi_report", { _upi_id: id, _scam_type: "UPI" });
+
     toast.success("Reported. Community protected 🛡️");
   }
 

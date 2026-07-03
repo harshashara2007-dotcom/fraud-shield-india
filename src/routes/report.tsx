@@ -69,15 +69,12 @@ function ReportScreen() {
 
       if (phone) {
         const n = phone.replace(/\D/g, "").slice(-10);
-        const { data: ex } = await supabase.from("phone_blacklist").select("id,reports").eq("number", n).maybeSingle();
-        if (ex) await supabase.from("phone_blacklist").update({ reports: (ex.reports ?? 0) + 1 }).eq("id", ex.id);
-        else await supabase.from("phone_blacklist").insert({ number: n, scam_type: type });
+        await supabase.rpc("increment_phone_report", { _number: n, _scam_type: type });
       }
       if (upi) {
-        const { data: ex } = await supabase.from("upi_blacklist").select("id,reports").eq("upi_id", upi).maybeSingle();
-        if (ex) await supabase.from("upi_blacklist").update({ reports: (ex.reports ?? 0) + 1 }).eq("id", ex.id);
-        else await supabase.from("upi_blacklist").insert({ upi_id: upi, scam_type: type });
+        await supabase.rpc("increment_upi_report", { _upi_id: upi, _scam_type: type });
       }
+
 
       const { count } = await supabase.from("scam_reports").select("*", { count: "exact", head: true });
       // bump safety score
