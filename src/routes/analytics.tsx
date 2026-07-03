@@ -279,8 +279,9 @@ Generated: ${new Date().toLocaleString()}`;
                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#1E3A5F40" }} />
                 <Bar dataKey="count" radius={[0, 6, 6, 0]}>
                   {cityData.map((_, i) => (
-                    <Cell key={i} fill={`hsl(${10 - i * 2}, 90%, ${55 + i * 2}%)`} />
+                    <Cell key={i} fill={FALLBACK_PALETTE[i % FALLBACK_PALETTE.length]} />
                   ))}
+
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
