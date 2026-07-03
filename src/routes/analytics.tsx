@@ -16,16 +16,34 @@ export const Route = createFileRoute("/analytics")({
 });
 
 const TYPE_COLORS: Record<string, string> = {
-  "UPI Fraud": "#FF2D55",
-  "KYC Scam": "#FF9500",
-  "Job Scam": "#007AFF",
-  "Lottery": "#FFD700",
-  "Fake Police": "#8B00FF",
-  "Fake Bank": "#00C853",
-  "Investment": "#FF6B6B",
-  "Phone": "#8899aa",
-  "Other": "#8899aa",
+  UPI: "#FF2D55",         // red
+  KYC: "#FF9500",         // orange
+  OTP: "#FFD60A",         // yellow
+  Job: "#007AFF",         // blue
+  Loan: "#00C853",        // green
+  Lottery: "#FFD700",     // gold
+  Police: "#8B00FF",      // violet
+  Phone: "#5AC8FA",       // sky
+  Link: "#AF52DE",        // purple
+  Delivery: "#FF6B9D",    // pink
+  Investment: "#34D399",  // emerald
+  Bank: "#F97316",        // dark orange
+  Deepfake: "#EC4899",    // magenta
+  Romance: "#F43F5E",     // rose
+  Other: "#8899aa",       // grey
 };
+
+// Fallback rainbow palette for unknown types
+const FALLBACK_PALETTE = [
+  "#FF2D55", "#FF9500", "#FFD60A", "#34C759", "#00C853",
+  "#007AFF", "#5AC8FA", "#AF52DE", "#8B00FF", "#EC4899",
+  "#F43F5E", "#F97316", "#14B8A6", "#84CC16", "#8899aa",
+];
+
+function colorForType(name: string, index = 0): string {
+  return TYPE_COLORS[name] ?? FALLBACK_PALETTE[index % FALLBACK_PALETTE.length];
+}
+
 
 type Report = {
   id: string;
