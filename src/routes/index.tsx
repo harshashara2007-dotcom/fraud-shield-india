@@ -22,6 +22,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const sod = scamOfDay();
+  const [showSupport, setShowSupport] = useState(false);
   return (
     <AppShell
       header={
