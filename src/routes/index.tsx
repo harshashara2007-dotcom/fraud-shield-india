@@ -7,7 +7,7 @@ import { ScamFeed } from "@/components/ScamFeed";
 import { scamOfDay } from "@/lib/format";
 import supportQr from "@/assets/support-qr.jpeg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
-import { ScanLine, CreditCard, Image as ImageIcon, Phone, Map as MapIcon, Megaphone, Bot, ShieldCheck, BarChart3, Heart, Copy, X, User, LogIn, LogOut, Shield } from "lucide-react";
+import { ScanLine, CreditCard, Image as ImageIcon, Phone, Map as MapIcon, Megaphone, Bot, ShieldCheck, BarChart3, Heart, Copy, X, LogIn, LogOut, Shield } from "lucide-react";
 
 const SUPPORT_UPI = "reenaashara22@oksbi";
 
