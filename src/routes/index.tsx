@@ -24,6 +24,36 @@ export const Route = createFileRoute("/")({
 function Home() {
   const sod = scamOfDay();
   const [showSupport, setShowSupport] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    async function load(uid: string | undefined, email: string | null) {
+      setUserEmail(email);
+      if (!uid) {
+        setIsAdmin(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!data);
+    }
+    supabase.auth.getUser().then(({ data }) => load(data.user?.id, data.user?.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      load(session?.user?.id, session?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+  }
+
   return (
     <AppShell
       header={
@@ -38,10 +68,34 @@ function Home() {
           }
           subtitle="AI fraud detector for India"
           right={
-            <span className="flex items-center gap-1.5 rounded-full bg-danger/15 px-2.5 py-1 text-[11px] font-bold text-danger">
-              <span className="pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-danger" />
-              LIVE
-            </span>
+            <div className="flex items-center gap-1.5">
+              {userEmail ? (
+                <>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="flex items-center gap-1 rounded-full bg-[#7C3AED]/20 px-2.5 py-1 text-[11px] font-bold text-[#7C3AED]"
+                    >
+                      <Shield className="h-3 w-3" /> Admin
+                    </Link>
+                  )}
+                  <button
+                    onClick={signOut}
+                    className="flex items-center gap-1 rounded-full bg-muted/40 px-2.5 py-1 text-[11px] font-semibold"
+                    aria-label="Sign out"
+                  >
+                    <LogOut className="h-3 w-3" />
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="flex items-center gap-1 rounded-full bg-action px-2.5 py-1 text-[11px] font-bold text-white"
+                >
+                  <LogIn className="h-3 w-3" /> Sign in
+                </Link>
+              )}
+            </div>
           }
         />
       }
