@@ -151,6 +151,22 @@ function Home() {
           </div>
         </section>
 
+        {/* Support ScanScam */}
+        <button
+          onClick={() => setShowSupport(true)}
+          className="flex w-full items-center gap-4 rounded-2xl border border-danger/40 bg-gradient-to-br from-danger/15 to-[#FF6B9D]/10 p-4 transition-all active:scale-[0.98] hover:border-danger"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-danger/20 text-2xl">
+            <Heart className="h-6 w-6 text-danger" fill="currentColor" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-bold">Support ScanScam</p>
+            <p className="text-[11px] text-muted-foreground">Help keep India scam-free · Pay via UPI</p>
+          </div>
+          <span className="text-danger">→</span>
+        </button>
+
+
         <p className="pt-2 text-center text-[11px] text-muted-foreground">
           <ShieldCheck className="mr-1 inline h-3 w-3" /> ScanScam · Made with ❤️ for India
         </p>
