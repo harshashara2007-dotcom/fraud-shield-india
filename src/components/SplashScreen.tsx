@@ -203,7 +203,7 @@ export function SplashGate({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const seen = typeof window !== "undefined" && localStorage.getItem("splashShown");
+    const seen = typeof window !== "undefined" && sessionStorage.getItem("splashShown");
     if (!seen) {
       setShow(true);
     }
@@ -211,7 +211,7 @@ export function SplashGate({ children }: { children: React.ReactNode }) {
   }, []);
 
   function done() {
-    localStorage.setItem("splashShown", "true");
+    sessionStorage.setItem("splashShown", "true");
     setShow(false);
   }
 

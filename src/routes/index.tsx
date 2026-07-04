@@ -51,9 +51,9 @@ function Home() {
         {/* Stats card */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-danger to-[#B30033] p-5 text-white shadow-lg shadow-danger/20">
           <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">India 2024</p>
-          <p className="mt-1 text-4xl font-black tracking-tight">₹22,845 Cr</p>
-          <p className="mt-1 text-sm text-white/90">Lost to cyber fraud in India in 2024</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">India 2025</p>
+          <p className="mt-1 text-4xl font-black tracking-tight">₹48,021 Cr</p>
+          <p className="mt-1 text-sm text-white/90">Lost to cyber fraud in India in 2025</p>
         </div>
 
         {/* 2x2 primary actions */}
