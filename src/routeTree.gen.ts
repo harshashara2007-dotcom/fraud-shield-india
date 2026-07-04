@@ -22,8 +22,11 @@ import { Route as MapRouteImport } from './routes/map'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as DeepfakeRouteImport } from './routes/deepfake'
 import { Route as CallRouteImport } from './routes/call'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const UpiRoute = UpiRouteImport.update({
   id: '/upi',
@@ -90,9 +93,18 @@ const CallRoute = CallRouteImport.update({
   path: '/call',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -100,10 +112,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
   '/landing': typeof LandingRoute
@@ -117,10 +135,12 @@ export interface FileRoutesByFullPath {
   '/scan': typeof ScanRoute
   '/screenshot': typeof ScreenshotRoute
   '/upi': typeof UpiRoute
+  '/admin': typeof AuthenticatedAdminRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
   '/landing': typeof LandingRoute
@@ -134,11 +154,14 @@ export interface FileRoutesByTo {
   '/scan': typeof ScanRoute
   '/screenshot': typeof ScreenshotRoute
   '/upi': typeof UpiRoute
+  '/admin': typeof AuthenticatedAdminRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
   '/landing': typeof LandingRoute
@@ -152,12 +175,14 @@ export interface FileRoutesById {
   '/scan': typeof ScanRoute
   '/screenshot': typeof ScreenshotRoute
   '/upi': typeof UpiRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/analytics'
+    | '/auth'
     | '/call'
     | '/deepfake'
     | '/landing'
@@ -171,10 +196,12 @@ export interface FileRouteTypes {
     | '/scan'
     | '/screenshot'
     | '/upi'
+    | '/admin'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/analytics'
+    | '/auth'
     | '/call'
     | '/deepfake'
     | '/landing'
@@ -188,10 +215,13 @@ export interface FileRouteTypes {
     | '/scan'
     | '/screenshot'
     | '/upi'
+    | '/admin'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/analytics'
+    | '/auth'
     | '/call'
     | '/deepfake'
     | '/landing'
@@ -205,11 +235,14 @@ export interface FileRouteTypes {
     | '/scan'
     | '/screenshot'
     | '/upi'
+    | '/_authenticated/admin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AnalyticsRoute: typeof AnalyticsRoute
+  AuthRoute: typeof AuthRoute
   CallRoute: typeof CallRoute
   DeepfakeRoute: typeof DeepfakeRoute
   LandingRoute: typeof LandingRoute
@@ -318,11 +351,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CallRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analytics': {
       id: '/analytics'
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -332,12 +379,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AnalyticsRoute: AnalyticsRoute,
+  AuthRoute: AuthRoute,
   CallRoute: CallRoute,
   DeepfakeRoute: DeepfakeRoute,
   LandingRoute: LandingRoute,
@@ -355,13 +422,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
