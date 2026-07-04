@@ -176,7 +176,74 @@ function Home() {
           <Link to="/landing" className="text-action">For Business</Link>
         </p>
       </div>
+
+      {showSupport && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center"
+          onClick={() => setShowSupport(false)}
+        >
+          <div
+            className="fade-in relative w-full max-w-sm rounded-3xl border border-border bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowSupport(false)}
+              className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/15">
+                <Heart className="h-6 w-6 text-danger" fill="currentColor" />
+              </div>
+              <h3 className="mt-3 text-lg font-bold">Support ScanScam</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Every rupee helps us fight fraud in India 🇮🇳
+              </p>
+            </div>
+
+            <div className="mt-5 overflow-hidden rounded-2xl bg-white p-4">
+              <img
+                src={supportQr.url}
+                alt="ScanScam UPI QR Code"
+                className="mx-auto block w-full max-w-[260px]"
+              />
+            </div>
+
+            <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                UPI ID
+              </p>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="truncate text-sm font-bold">{SUPPORT_UPI}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(SUPPORT_UPI);
+                    toast.success("UPI ID copied");
+                  }}
+                  className="flex shrink-0 items-center gap-1 rounded-lg bg-action px-2.5 py-1.5 text-[11px] font-bold text-white active:scale-95"
+                >
+                  <Copy className="h-3 w-3" /> Copy
+                </button>
+              </div>
+            </div>
+
+            <a
+              href={`upi://pay?pa=${encodeURIComponent(SUPPORT_UPI)}&pn=${encodeURIComponent("ScanScam India")}&cu=INR`}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-danger to-[#FF6B9D] py-3 text-sm font-bold text-white active:scale-[0.98]"
+            >
+              <Heart className="h-4 w-4" fill="currentColor" /> Pay with UPI app
+            </a>
+
+            <p className="mt-3 text-center text-[10px] text-muted-foreground">
+              Scan the QR with any UPI app · GPay, PhonePe, Paytm, BHIM
+            </p>
+          </div>
+        </div>
+      )}
     </AppShell>
+
   );
 }
 
