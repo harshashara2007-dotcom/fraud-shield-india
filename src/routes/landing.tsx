@@ -164,10 +164,10 @@ function Navbar() {
           </a>
         </div>
         <a
-          href="#contact"
+          href="#pricing"
           className="rounded-lg bg-[#FF2D55] px-3 py-1.5 text-xs font-black text-white shadow shadow-[#FF2D55]/30"
         >
-          Free Trial
+          Buy Now
         </a>
       </div>
     </nav>
