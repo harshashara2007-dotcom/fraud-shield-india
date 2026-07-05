@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ShieldCheck, Zap, Globe2, Lock, Sparkles, RefreshCcw, Copy, ChevronDown } from "lucide-react";
+import supportQr from "@/assets/support-qr.jpeg.asset.json";
+import { ShieldCheck, Zap, Globe2, Lock, Sparkles, RefreshCcw, Copy, ChevronDown, X, Heart } from "lucide-react";
+
+const BUY_UPI = "reenaashara22@oksbi";
+const BuyCtx = createContext<(plan?: string) => void>(() => {});
+const useBuy = () => useContext(BuyCtx);
 
 export const Route = createFileRoute("/landing")({
   head: () => ({
@@ -43,19 +48,84 @@ function useCountUp(target: number, active: boolean, duration = 1400) {
 }
 
 function Landing() {
+  const [buyOpen, setBuyOpen] = useState<string | null>(null);
+  const openBuy = (plan?: string) => setBuyOpen(plan ?? "ScanScam API");
   return (
-    <div className="min-h-screen text-white" style={{ background: "#0A1628" }}>
-      <Navbar />
-      <Hero />
-      <StatsSection />
-      <LiveDemo />
-      <HowItWorks />
-      <CodeExamples />
-      <Pricing />
-      <WhyUs />
-      <Faq />
-      <ContactForm />
-      <Footer />
+    <BuyCtx.Provider value={openBuy}>
+      <div className="min-h-screen text-white" style={{ background: "#0A1628" }}>
+        <Navbar />
+        <Hero />
+        <StatsSection />
+        <LiveDemo />
+        <HowItWorks />
+        <CodeExamples />
+        <Pricing />
+        <WhyUs />
+        <Faq />
+        <ContactForm />
+        <Footer />
+        {buyOpen && <BuyModal plan={buyOpen} onClose={() => setBuyOpen(null)} />}
+      </div>
+    </BuyCtx.Provider>
+  );
+}
+
+function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-4 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-sm rounded-3xl border border-[#1e3a5f] bg-[#12233d] p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-full p-1.5 text-[#8899aa] hover:bg-white/10 hover:text-white"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FF2D55]/20">
+            <Heart className="h-6 w-6 text-[#FF2D55]" fill="currentColor" />
+          </div>
+          <h3 className="mt-3 text-lg font-black text-white">Buy {plan}</h3>
+          <p className="mt-1 text-xs text-[#8899aa]">Pay via UPI to activate your plan 🇮🇳</p>
+        </div>
+
+        <div className="mt-5 overflow-hidden rounded-2xl bg-white p-4">
+          <img src={supportQr.url} alt="ScanScam UPI QR Code" className="mx-auto block w-full max-w-[260px]" />
+        </div>
+
+        <div className="mt-4 rounded-xl border border-[#1e3a5f] bg-[#0a1628] p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8899aa]">UPI ID</p>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span className="truncate text-sm font-bold text-white">{BUY_UPI}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(BUY_UPI);
+                toast.success("UPI ID copied");
+              }}
+              className="flex shrink-0 items-center gap-1 rounded-lg bg-[#FF2D55] px-2.5 py-1.5 text-[11px] font-bold text-white active:scale-95"
+            >
+              <Copy className="h-3 w-3" /> Copy
+            </button>
+          </div>
+        </div>
+
+        <a
+          href={`upi://pay?pa=${encodeURIComponent(BUY_UPI)}&pn=${encodeURIComponent("ScanScam India")}&cu=INR`}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF2D55] py-3 text-sm font-black text-white active:scale-[0.98]"
+        >
+          <Heart className="h-4 w-4" fill="currentColor" /> Pay with UPI app
+        </a>
+
+        <p className="mt-3 text-center text-[10px] text-[#8899aa]">
+          After payment, email <span className="text-white">sales@scanscam.in</span> with your transaction ID to receive your API key.
+        </p>
+      </div>
     </div>
   );
 }
@@ -94,10 +164,10 @@ function Navbar() {
           </a>
         </div>
         <a
-          href="#contact"
+          href="#pricing"
           className="rounded-lg bg-[#FF2D55] px-3 py-1.5 text-xs font-black text-white shadow shadow-[#FF2D55]/30"
         >
-          Free Trial
+          Buy Now
         </a>
       </div>
     </nav>
@@ -105,6 +175,7 @@ function Navbar() {
 }
 
 function Hero() {
+  const openBuy = useBuy();
   return (
     <section
       id="top"
@@ -129,12 +200,12 @@ function Hero() {
           fintechs.
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <a
-            href="#contact"
+          <button
+            onClick={() => openBuy("ScanScam API")}
             className="rounded-xl bg-[#FF2D55] px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-[#FF2D55]/30 transition hover:brightness-110"
           >
-            🚀 Get Free API Trial
-          </a>
+            🛒 Buy Now
+          </button>
           <a
             href="#demo"
             className="rounded-xl border border-white/30 px-6 py-3.5 text-sm font-black text-white transition hover:bg-white/10"
@@ -425,7 +496,7 @@ function VerdictPill({ v }: { v: string }) {
 
 function HowItWorks() {
   const steps: [string, string, string][] = [
-    ["🔑", "Get API Key", "Free trial in 30 seconds. No credit card needed."],
+    ["🔑", "Buy & Get API Key", "Pay via UPI and receive your API key within an hour."],
     ["💻", "Make API Call", "Simple REST API. Works with Python, JS, Java, PHP."],
     ["✅", "Get Result", "Instant verdict under 200ms. SAFE, SUSPICIOUS or DANGER."],
   ];
@@ -526,13 +597,15 @@ print(r.json())
 }
 
 function Pricing() {
+  const openBuy = useBuy();
   const plans = [
     {
       name: "Starter",
       price: "₹25,000",
       per: "/month",
       features: ["10,000 calls", "UPI + Phone check", "Email support", "99% uptime"],
-      cta: "Start Free Trial",
+      cta: "Buy Now",
+      action: "buy" as const,
       highlight: false,
     },
     {
@@ -547,7 +620,8 @@ function Pricing() {
         "Priority support",
         "Weekly reports",
       ],
-      cta: "Start Free Trial",
+      cta: "Buy Now",
+      action: "buy" as const,
       highlight: true,
     },
     {
@@ -556,6 +630,7 @@ function Pricing() {
       per: "",
       features: ["Unlimited calls", "White label", "On-premise", "99.99% SLA"],
       cta: "Contact Sales",
+      action: "contact" as const,
       highlight: false,
     },
   ];
@@ -564,44 +639,50 @@ function Pricing() {
       <div className="mx-auto max-w-6xl">
         <h2 className="text-center text-3xl font-black md:text-4xl">Simple, Transparent Pricing</h2>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {plans.map((p) => (
-            <div
-              key={p.name}
-              className={`relative rounded-2xl border p-6 ${
-                p.highlight
-                  ? "border-[#FF2D55] bg-gradient-to-b from-[#FF2D55]/10 to-transparent"
-                  : "border-[#1e3a5f] bg-[#12233d]"
-              }`}
-            >
-              {p.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FF2D55] px-3 py-1 text-[10px] font-black uppercase text-white">
-                  🔥 Most Popular
-                </span>
-              )}
-              <p className="text-sm font-bold uppercase text-[#8899aa]">{p.name}</p>
-              <p className="mt-2 text-4xl font-black">
-                {p.price}
-                <span className="text-sm font-medium text-[#8899aa]">{p.per}</span>
-              </p>
-              <ul className="mt-4 space-y-2 text-sm text-[#c9d4e2]">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <ShieldCheck className="h-3.5 w-3.5 text-[#00C853]" /> {f}
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="#contact"
-                className={`mt-6 block rounded-xl px-4 py-3 text-center text-sm font-black ${
+          {plans.map((p) => {
+            const btnClass = `mt-6 block w-full rounded-xl px-4 py-3 text-center text-sm font-black ${
+              p.highlight
+                ? "bg-[#FF2D55] text-white shadow shadow-[#FF2D55]/30"
+                : "border border-[#1e3a5f] bg-[#0a1628] text-white"
+            }`;
+            return (
+              <div
+                key={p.name}
+                className={`relative rounded-2xl border p-6 ${
                   p.highlight
-                    ? "bg-[#FF2D55] text-white shadow shadow-[#FF2D55]/30"
-                    : "border border-[#1e3a5f] bg-[#0a1628] text-white"
+                    ? "border-[#FF2D55] bg-gradient-to-b from-[#FF2D55]/10 to-transparent"
+                    : "border-[#1e3a5f] bg-[#12233d]"
                 }`}
               >
-                {p.cta}
-              </a>
-            </div>
-          ))}
+                {p.highlight && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FF2D55] px-3 py-1 text-[10px] font-black uppercase text-white">
+                    🔥 Most Popular
+                  </span>
+                )}
+                <p className="text-sm font-bold uppercase text-[#8899aa]">{p.name}</p>
+                <p className="mt-2 text-4xl font-black">
+                  {p.price}
+                  <span className="text-sm font-medium text-[#8899aa]">{p.per}</span>
+                </p>
+                <ul className="mt-4 space-y-2 text-sm text-[#c9d4e2]">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-[#00C853]" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                {p.action === "buy" ? (
+                  <button onClick={() => openBuy(`${p.name} — ${p.price}${p.per}`)} className={btnClass}>
+                    {p.cta}
+                  </button>
+                ) : (
+                  <a href="#contact" className={btnClass}>
+                    {p.cta}
+                  </a>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -639,7 +720,7 @@ function Faq() {
   const qs: [string, string][] = [
     ["How accurate is the API?", "Verdicts blend community reports, on-device heuristics and LLM-scored signals — production accuracy above 96% on flagged Indian UPI IDs."],
     ["How long does integration take?", "Most fintechs go live within a day using our REST endpoint and Postman collection."],
-    ["What are the free trial details?", "30 days, up to 5,000 free calls, no credit card required."],
+    ["How do I get an API key?", "Buy any plan via UPI on this page, then email sales@scanscam.in with your transaction ID — we issue your key within one business hour."],
     ["How often is data updated?", "Real-time — community submissions and heuristics update the database within seconds."],
     ["Are you GDPR / DPDP compliant?", "Yes. We do not store PII and offer data residency in India for enterprise plans."],
     ["What if I exceed my limit?", "You'll be notified at 80% and 100%. Overage is billed per-call or you can upgrade."],
@@ -688,8 +769,8 @@ function ContactForm() {
   return (
     <section id="contact" className="px-5 py-20">
       <div className="mx-auto max-w-2xl rounded-2xl border border-[#1e3a5f] bg-[#12233d] p-8">
-        <h2 className="text-center text-3xl font-black">Get Your Free API Key</h2>
-        <p className="mt-1 text-center text-sm text-[#8899aa]">30 days free · No credit card</p>
+        <h2 className="text-center text-3xl font-black">Talk to Sales</h2>
+        <p className="mt-1 text-center text-sm text-[#8899aa]">Enterprise plans · custom volume · SLA</p>
         <form onSubmit={submit} className="mt-6 space-y-3">
           <Input placeholder="Company Name *" value={f.company} onChange={set("company")} />
           <Input placeholder="Your Name *" value={f.name} onChange={set("name")} />
@@ -716,7 +797,7 @@ function ContactForm() {
             type="submit"
             className="w-full rounded-xl bg-[#FF2D55] py-3.5 text-sm font-black text-white shadow shadow-[#FF2D55]/30"
           >
-            🚀 Request Free Trial
+            📩 Contact Sales
           </button>
         </form>
       </div>
