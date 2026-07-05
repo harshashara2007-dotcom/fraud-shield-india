@@ -769,8 +769,8 @@ function ContactForm() {
   return (
     <section id="contact" className="px-5 py-20">
       <div className="mx-auto max-w-2xl rounded-2xl border border-[#1e3a5f] bg-[#12233d] p-8">
-        <h2 className="text-center text-3xl font-black">Get Your Free API Key</h2>
-        <p className="mt-1 text-center text-sm text-[#8899aa]">30 days free · No credit card</p>
+        <h2 className="text-center text-3xl font-black">Talk to Sales</h2>
+        <p className="mt-1 text-center text-sm text-[#8899aa]">Enterprise plans · custom volume · SLA</p>
         <form onSubmit={submit} className="mt-6 space-y-3">
           <Input placeholder="Company Name *" value={f.company} onChange={set("company")} />
           <Input placeholder="Your Name *" value={f.name} onChange={set("name")} />
