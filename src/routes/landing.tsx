@@ -48,19 +48,84 @@ function useCountUp(target: number, active: boolean, duration = 1400) {
 }
 
 function Landing() {
+  const [buyOpen, setBuyOpen] = useState<string | null>(null);
+  const openBuy = (plan?: string) => setBuyOpen(plan ?? "ScanScam API");
   return (
-    <div className="min-h-screen text-white" style={{ background: "#0A1628" }}>
-      <Navbar />
-      <Hero />
-      <StatsSection />
-      <LiveDemo />
-      <HowItWorks />
-      <CodeExamples />
-      <Pricing />
-      <WhyUs />
-      <Faq />
-      <ContactForm />
-      <Footer />
+    <BuyCtx.Provider value={openBuy}>
+      <div className="min-h-screen text-white" style={{ background: "#0A1628" }}>
+        <Navbar />
+        <Hero />
+        <StatsSection />
+        <LiveDemo />
+        <HowItWorks />
+        <CodeExamples />
+        <Pricing />
+        <WhyUs />
+        <Faq />
+        <ContactForm />
+        <Footer />
+        {buyOpen && <BuyModal plan={buyOpen} onClose={() => setBuyOpen(null)} />}
+      </div>
+    </BuyCtx.Provider>
+  );
+}
+
+function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-4 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-sm rounded-3xl border border-[#1e3a5f] bg-[#12233d] p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-full p-1.5 text-[#8899aa] hover:bg-white/10 hover:text-white"
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <div className="text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FF2D55]/20">
+            <Heart className="h-6 w-6 text-[#FF2D55]" fill="currentColor" />
+          </div>
+          <h3 className="mt-3 text-lg font-black text-white">Buy {plan}</h3>
+          <p className="mt-1 text-xs text-[#8899aa]">Pay via UPI to activate your plan 🇮🇳</p>
+        </div>
+
+        <div className="mt-5 overflow-hidden rounded-2xl bg-white p-4">
+          <img src={supportQr.url} alt="ScanScam UPI QR Code" className="mx-auto block w-full max-w-[260px]" />
+        </div>
+
+        <div className="mt-4 rounded-xl border border-[#1e3a5f] bg-[#0a1628] p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8899aa]">UPI ID</p>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span className="truncate text-sm font-bold text-white">{BUY_UPI}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(BUY_UPI);
+                toast.success("UPI ID copied");
+              }}
+              className="flex shrink-0 items-center gap-1 rounded-lg bg-[#FF2D55] px-2.5 py-1.5 text-[11px] font-bold text-white active:scale-95"
+            >
+              <Copy className="h-3 w-3" /> Copy
+            </button>
+          </div>
+        </div>
+
+        <a
+          href={`upi://pay?pa=${encodeURIComponent(BUY_UPI)}&pn=${encodeURIComponent("ScanScam India")}&cu=INR`}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF2D55] py-3 text-sm font-black text-white active:scale-[0.98]"
+        >
+          <Heart className="h-4 w-4" fill="currentColor" /> Pay with UPI app
+        </a>
+
+        <p className="mt-3 text-center text-[10px] text-[#8899aa]">
+          After payment, email <span className="text-white">sales@scanscam.in</span> with your transaction ID to receive your API key.
+        </p>
+      </div>
     </div>
   );
 }
