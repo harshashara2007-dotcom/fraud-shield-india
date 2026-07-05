@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ShieldCheck, Zap, Globe2, Lock, Sparkles, RefreshCcw, Copy, ChevronDown } from "lucide-react";
+import supportQr from "@/assets/support-qr.jpeg.asset.json";
+import { ShieldCheck, Zap, Globe2, Lock, Sparkles, RefreshCcw, Copy, ChevronDown, X, Heart } from "lucide-react";
+
+const BUY_UPI = "reenaashara22@oksbi";
+const BuyCtx = createContext<(plan?: string) => void>(() => {});
+const useBuy = () => useContext(BuyCtx);
 
 export const Route = createFileRoute("/landing")({
   head: () => ({
