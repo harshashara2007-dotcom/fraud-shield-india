@@ -797,7 +797,7 @@ function ContactForm() {
             type="submit"
             className="w-full rounded-xl bg-[#FF2D55] py-3.5 text-sm font-black text-white shadow shadow-[#FF2D55]/30"
           >
-            🚀 Request Free Trial
+            📩 Contact Sales
           </button>
         </form>
       </div>
