@@ -89,10 +89,40 @@ function MapScreen() {
     };
   }, []);
 
+  const cityMarkers = useMemo<CityMarker[]>(() => {
+    const byCity = new Map<
+      string,
+      { count: number; latSum: number; lngSum: number; types: Record<string, number> }
+    >();
+    for (const r of reports) {
+      if (!r.city || r.lat == null || r.lng == null) continue;
+      const e = byCity.get(r.city) ?? { count: 0, latSum: 0, lngSum: 0, types: {} };
+      e.count += 1;
+      e.latSum += r.lat;
+      e.lngSum += r.lng;
+      e.types[r.type] = (e.types[r.type] ?? 0) + 1;
+      byCity.set(r.city, e);
+    }
+    return [...byCity.entries()]
+      .map(([name, e]) => {
+        const topScam =
+          Object.entries(e.types).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Other";
+        return {
+          name,
+          reports: e.count,
+          lat: e.latSum / e.count,
+          lng: e.lngSum / e.count,
+          size: Math.min(32, 10 + Math.sqrt(e.count) * 4),
+          topScam,
+        };
+      })
+      .sort((a, b) => b.reports - a.reports);
+  }, [reports]);
+
   const stats = useMemo(() => {
-    const top = [...CITY_MARKERS].sort((a, b) => b.reports - a.reports)[0]?.name ?? "—";
-    return { today: todayCount, cities: CITY_MARKERS.length, top };
-  }, [todayCount]);
+    const top = cityMarkers[0]?.name ?? "—";
+    return { today: todayCount, cities: cityMarkers.length, top };
+  }, [todayCount, cityMarkers]);
 
   function nearMe() {
     if (!navigator.geolocation) return toast.error("Geolocation not supported");
