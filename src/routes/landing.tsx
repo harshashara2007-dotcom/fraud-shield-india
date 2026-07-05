@@ -175,6 +175,7 @@ function Navbar() {
 }
 
 function Hero() {
+  const openBuy = useBuy();
   return (
     <section
       id="top"
