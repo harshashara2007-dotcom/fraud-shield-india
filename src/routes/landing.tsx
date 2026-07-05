@@ -597,13 +597,15 @@ print(r.json())
 }
 
 function Pricing() {
+  const openBuy = useBuy();
   const plans = [
     {
       name: "Starter",
       price: "₹25,000",
       per: "/month",
       features: ["10,000 calls", "UPI + Phone check", "Email support", "99% uptime"],
-      cta: "Start Free Trial",
+      cta: "Buy Now",
+      action: "buy" as const,
       highlight: false,
     },
     {
@@ -618,7 +620,8 @@ function Pricing() {
         "Priority support",
         "Weekly reports",
       ],
-      cta: "Start Free Trial",
+      cta: "Buy Now",
+      action: "buy" as const,
       highlight: true,
     },
     {
@@ -627,6 +630,7 @@ function Pricing() {
       per: "",
       features: ["Unlimited calls", "White label", "On-premise", "99.99% SLA"],
       cta: "Contact Sales",
+      action: "contact" as const,
       highlight: false,
     },
   ];
@@ -635,44 +639,50 @@ function Pricing() {
       <div className="mx-auto max-w-6xl">
         <h2 className="text-center text-3xl font-black md:text-4xl">Simple, Transparent Pricing</h2>
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {plans.map((p) => (
-            <div
-              key={p.name}
-              className={`relative rounded-2xl border p-6 ${
-                p.highlight
-                  ? "border-[#FF2D55] bg-gradient-to-b from-[#FF2D55]/10 to-transparent"
-                  : "border-[#1e3a5f] bg-[#12233d]"
-              }`}
-            >
-              {p.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FF2D55] px-3 py-1 text-[10px] font-black uppercase text-white">
-                  🔥 Most Popular
-                </span>
-              )}
-              <p className="text-sm font-bold uppercase text-[#8899aa]">{p.name}</p>
-              <p className="mt-2 text-4xl font-black">
-                {p.price}
-                <span className="text-sm font-medium text-[#8899aa]">{p.per}</span>
-              </p>
-              <ul className="mt-4 space-y-2 text-sm text-[#c9d4e2]">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <ShieldCheck className="h-3.5 w-3.5 text-[#00C853]" /> {f}
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="#contact"
-                className={`mt-6 block rounded-xl px-4 py-3 text-center text-sm font-black ${
+          {plans.map((p) => {
+            const btnClass = `mt-6 block w-full rounded-xl px-4 py-3 text-center text-sm font-black ${
+              p.highlight
+                ? "bg-[#FF2D55] text-white shadow shadow-[#FF2D55]/30"
+                : "border border-[#1e3a5f] bg-[#0a1628] text-white"
+            }`;
+            return (
+              <div
+                key={p.name}
+                className={`relative rounded-2xl border p-6 ${
                   p.highlight
-                    ? "bg-[#FF2D55] text-white shadow shadow-[#FF2D55]/30"
-                    : "border border-[#1e3a5f] bg-[#0a1628] text-white"
+                    ? "border-[#FF2D55] bg-gradient-to-b from-[#FF2D55]/10 to-transparent"
+                    : "border-[#1e3a5f] bg-[#12233d]"
                 }`}
               >
-                {p.cta}
-              </a>
-            </div>
-          ))}
+                {p.highlight && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#FF2D55] px-3 py-1 text-[10px] font-black uppercase text-white">
+                    🔥 Most Popular
+                  </span>
+                )}
+                <p className="text-sm font-bold uppercase text-[#8899aa]">{p.name}</p>
+                <p className="mt-2 text-4xl font-black">
+                  {p.price}
+                  <span className="text-sm font-medium text-[#8899aa]">{p.per}</span>
+                </p>
+                <ul className="mt-4 space-y-2 text-sm text-[#c9d4e2]">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-[#00C853]" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                {p.action === "buy" ? (
+                  <button onClick={() => openBuy(`${p.name} — ${p.price}${p.per}`)} className={btnClass}>
+                    {p.cta}
+                  </button>
+                ) : (
+                  <a href="#contact" className={btnClass}>
+                    {p.cta}
+                  </a>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
