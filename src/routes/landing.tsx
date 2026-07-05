@@ -720,7 +720,7 @@ function Faq() {
   const qs: [string, string][] = [
     ["How accurate is the API?", "Verdicts blend community reports, on-device heuristics and LLM-scored signals — production accuracy above 96% on flagged Indian UPI IDs."],
     ["How long does integration take?", "Most fintechs go live within a day using our REST endpoint and Postman collection."],
-    ["What are the free trial details?", "30 days, up to 5,000 free calls, no credit card required."],
+    ["How do I get an API key?", "Buy any plan via UPI on this page, then email sales@scanscam.in with your transaction ID — we issue your key within one business hour."],
     ["How often is data updated?", "Real-time — community submissions and heuristics update the database within seconds."],
     ["Are you GDPR / DPDP compliant?", "Yes. We do not store PII and offer data residency in India for enterprise plans."],
     ["What if I exceed my limit?", "You'll be notified at 80% and 100%. Overage is billed per-call or you can upgrade."],
