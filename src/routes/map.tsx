@@ -44,19 +44,6 @@ type CityMarker = {
   topScam: string;
 };
 
-const CITY_MARKERS: CityMarker[] = [
-  { name: "Delhi", reports: 234, lat: 28.6139, lng: 77.209, size: 30, topScam: "UPI Fraud" },
-  { name: "Mumbai", reports: 189, lat: 19.076, lng: 72.8777, size: 30, topScam: "KYC Scam" },
-  { name: "Bengaluru", reports: 156, lat: 12.9716, lng: 77.5946, size: 26, topScam: "Job Scam" },
-  { name: "Hyderabad", reports: 143, lat: 17.385, lng: 78.4867, size: 24, topScam: "Phone Scam" },
-  { name: "Chennai", reports: 98, lat: 13.0827, lng: 80.2707, size: 20, topScam: "UPI Fraud" },
-  { name: "Kolkata", reports: 87, lat: 22.5726, lng: 88.3639, size: 20, topScam: "Lottery Scam" },
-  { name: "Pune", reports: 76, lat: 18.5204, lng: 73.8567, size: 18, topScam: "Link Scam" },
-  { name: "Ahmedabad", reports: 65, lat: 23.0225, lng: 72.5714, size: 16, topScam: "KYC Scam" },
-  { name: "Jaipur", reports: 54, lat: 26.9124, lng: 75.7873, size: 14, topScam: "UPI Fraud" },
-  { name: "Lucknow", reports: 43, lat: 26.8467, lng: 80.9462, size: 14, topScam: "Job Scam" },
-];
-
 function MapScreen() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<string>("All");
