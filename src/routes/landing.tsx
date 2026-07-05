@@ -70,7 +70,45 @@ function Landing() {
   );
 }
 
+function generateApiKey() {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return `ss_live_${hex}`;
+}
+
 function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
+  const [step, setStep] = useState<"pay" | "email" | "done">("pay");
+  const [email, setEmail] = useState("");
+  const [txn, setTxn] = useState("");
+  const [issuing, setIssuing] = useState(false);
+  const [issuedKey, setIssuedKey] = useState<string | null>(null);
+
+  async function issueKey() {
+    const trimmed = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error("Enter a valid email");
+      return;
+    }
+    setIssuing(true);
+    try {
+      const key = generateApiKey();
+      const { error } = await supabase.from("api_keys").insert({
+        email: trimmed,
+        api_key: key,
+        plan,
+        status: "pending_verification",
+      });
+      if (error) throw error;
+      setIssuedKey(key);
+      setStep("done");
+    } catch (e) {
+      toast.error("Could not issue key — try again");
+    } finally {
+      setIssuing(false);
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-4 backdrop-blur-sm sm:items-center"
@@ -87,44 +125,145 @@ function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
         >
           <X className="h-5 w-5" />
         </button>
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FF2D55]/20">
-            <Heart className="h-6 w-6 text-[#FF2D55]" fill="currentColor" />
-          </div>
-          <h3 className="mt-3 text-lg font-black text-white">Buy {plan}</h3>
-          <p className="mt-1 text-xs text-[#8899aa]">Pay via UPI to activate your plan 🇮🇳</p>
-        </div>
 
-        <div className="mt-5 overflow-hidden rounded-2xl bg-white p-4">
-          <img src={supportQr.url} alt="ScanScam UPI QR Code" className="mx-auto block w-full max-w-[260px]" />
-        </div>
+        {step === "pay" && (
+          <>
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FF2D55]/20">
+                <Heart className="h-6 w-6 text-[#FF2D55]" fill="currentColor" />
+              </div>
+              <h3 className="mt-3 text-lg font-black text-white">Buy {plan}</h3>
+              <p className="mt-1 text-xs text-[#8899aa]">Step 1 of 2 · Pay via UPI 🇮🇳</p>
+            </div>
 
-        <div className="mt-4 rounded-xl border border-[#1e3a5f] bg-[#0a1628] p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8899aa]">UPI ID</p>
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="truncate text-sm font-bold text-white">{BUY_UPI}</span>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(BUY_UPI);
-                toast.success("UPI ID copied");
-              }}
-              className="flex shrink-0 items-center gap-1 rounded-lg bg-[#FF2D55] px-2.5 py-1.5 text-[11px] font-bold text-white active:scale-95"
+            <div className="mt-5 overflow-hidden rounded-2xl bg-white p-4">
+              <img src={supportQr.url} alt="ScanScam UPI QR Code" className="mx-auto block w-full max-w-[260px]" />
+            </div>
+
+            <div className="mt-4 rounded-xl border border-[#1e3a5f] bg-[#0a1628] p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8899aa]">UPI ID</p>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="truncate text-sm font-bold text-white">{BUY_UPI}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(BUY_UPI);
+                    toast.success("UPI ID copied");
+                  }}
+                  className="flex shrink-0 items-center gap-1 rounded-lg bg-[#FF2D55] px-2.5 py-1.5 text-[11px] font-bold text-white active:scale-95"
+                >
+                  <Copy className="h-3 w-3" /> Copy
+                </button>
+              </div>
+            </div>
+
+            <a
+              href={`upi://pay?pa=${encodeURIComponent(BUY_UPI)}&pn=${encodeURIComponent("ScanScam India")}&cu=INR`}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF2D55] py-3 text-sm font-black text-white active:scale-[0.98]"
             >
-              <Copy className="h-3 w-3" /> Copy
+              <Heart className="h-4 w-4" fill="currentColor" /> Pay with UPI app
+            </a>
+
+            <button
+              onClick={() => setStep("email")}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#00C853] bg-[#00C853]/10 py-3 text-sm font-black text-[#00C853]"
+            >
+              ✅ I've paid — get my API key
             </button>
-          </div>
-        </div>
+          </>
+        )}
 
-        <a
-          href={`upi://pay?pa=${encodeURIComponent(BUY_UPI)}&pn=${encodeURIComponent("ScanScam India")}&cu=INR`}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF2D55] py-3 text-sm font-black text-white active:scale-[0.98]"
-        >
-          <Heart className="h-4 w-4" fill="currentColor" /> Pay with UPI app
-        </a>
+        {step === "email" && (
+          <>
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#00C853]/20">
+                <ShieldCheck className="h-6 w-6 text-[#00C853]" />
+              </div>
+              <h3 className="mt-3 text-lg font-black text-white">Get your API key</h3>
+              <p className="mt-1 text-xs text-[#8899aa]">Step 2 of 2 · {plan}</p>
+            </div>
 
-        <p className="mt-3 text-center text-[10px] text-[#8899aa]">
-          After payment, email <span className="text-white">sales@scanscam.in</span> with your transaction ID to receive your API key.
-        </p>
+            <div className="mt-5 space-y-3">
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[#8899aa]">
+                  Business email *
+                </span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  className="w-full rounded-xl border border-[#1e3a5f] bg-[#0a1628] px-3 py-2.5 text-sm text-white outline-none focus:border-[#FF2D55]"
+                  required
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-[#8899aa]">
+                  UPI transaction ID (optional)
+                </span>
+                <input
+                  type="text"
+                  value={txn}
+                  onChange={(e) => setTxn(e.target.value)}
+                  placeholder="Helps us verify faster"
+                  className="w-full rounded-xl border border-[#1e3a5f] bg-[#0a1628] px-3 py-2.5 text-sm text-white outline-none focus:border-[#FF2D55]"
+                />
+              </label>
+              <button
+                onClick={issueKey}
+                disabled={issuing}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF2D55] py-3 text-sm font-black text-white active:scale-[0.98] disabled:opacity-60"
+              >
+                {issuing ? "Issuing…" : "🔑 Issue my API key"}
+              </button>
+              <p className="text-center text-[10px] text-[#8899aa]">
+                Your key is generated instantly. It activates within 1 hour once we verify your payment.
+              </p>
+            </div>
+          </>
+        )}
+
+        {step === "done" && issuedKey && (
+          <>
+            <div className="text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#00C853]/20 text-2xl">
+                🎉
+              </div>
+              <h3 className="mt-3 text-lg font-black text-white">Your API key</h3>
+              <p className="mt-1 text-xs text-[#8899aa]">Save this now — you'll only see it once.</p>
+            </div>
+
+            <div className="mt-5 rounded-xl border border-[#00C853]/40 bg-[#00C853]/5 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#00C853]">
+                {plan}
+              </p>
+              <p className="mt-1 break-all font-mono text-xs text-white">{issuedKey}</p>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(issuedKey);
+                  toast.success("API key copied");
+                }}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#00C853] py-2 text-xs font-black text-white active:scale-95"
+              >
+                <Copy className="h-3 w-3" /> Copy API key
+              </button>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-[#1e3a5f] bg-[#0a1628] p-3 text-[11px] text-[#c9d4e2]">
+              <p className="font-bold text-white">Status: Pending verification</p>
+              <p className="mt-1 text-[#8899aa]">
+                Key sent to <span className="text-white">{email}</span>. It activates within 1 hour after we
+                confirm your UPI payment.
+              </p>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="mt-4 w-full rounded-xl border border-[#1e3a5f] bg-[#12233d] py-3 text-sm font-black text-white"
+            >
+              Done
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          activated_at: string | null
+          api_key: string
+          created_at: string
+          email: string
+          id: string
+          plan: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          api_key: string
+          created_at?: string
+          email: string
+          id?: string
+          plan: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          api_key?: string
+          created_at?: string
+          email?: string
+          id?: string
+          plan?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       deepfakes: {
         Row: {
           city: string | null

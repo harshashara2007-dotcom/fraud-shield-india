@@ -44,19 +44,6 @@ type CityMarker = {
   topScam: string;
 };
 
-const CITY_MARKERS: CityMarker[] = [
-  { name: "Delhi", reports: 234, lat: 28.6139, lng: 77.209, size: 30, topScam: "UPI Fraud" },
-  { name: "Mumbai", reports: 189, lat: 19.076, lng: 72.8777, size: 30, topScam: "KYC Scam" },
-  { name: "Bengaluru", reports: 156, lat: 12.9716, lng: 77.5946, size: 26, topScam: "Job Scam" },
-  { name: "Hyderabad", reports: 143, lat: 17.385, lng: 78.4867, size: 24, topScam: "Phone Scam" },
-  { name: "Chennai", reports: 98, lat: 13.0827, lng: 80.2707, size: 20, topScam: "UPI Fraud" },
-  { name: "Kolkata", reports: 87, lat: 22.5726, lng: 88.3639, size: 20, topScam: "Lottery Scam" },
-  { name: "Pune", reports: 76, lat: 18.5204, lng: 73.8567, size: 18, topScam: "Link Scam" },
-  { name: "Ahmedabad", reports: 65, lat: 23.0225, lng: 72.5714, size: 16, topScam: "KYC Scam" },
-  { name: "Jaipur", reports: 54, lat: 26.9124, lng: 75.7873, size: 14, topScam: "UPI Fraud" },
-  { name: "Lucknow", reports: 43, lat: 26.8467, lng: 80.9462, size: 14, topScam: "Job Scam" },
-];
-
 function MapScreen() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<string>("All");
@@ -102,10 +89,40 @@ function MapScreen() {
     };
   }, []);
 
+  const cityMarkers = useMemo<CityMarker[]>(() => {
+    const byCity = new Map<
+      string,
+      { count: number; latSum: number; lngSum: number; types: Record<string, number> }
+    >();
+    for (const r of reports) {
+      if (!r.city || r.lat == null || r.lng == null) continue;
+      const e = byCity.get(r.city) ?? { count: 0, latSum: 0, lngSum: 0, types: {} };
+      e.count += 1;
+      e.latSum += r.lat;
+      e.lngSum += r.lng;
+      e.types[r.type] = (e.types[r.type] ?? 0) + 1;
+      byCity.set(r.city, e);
+    }
+    return [...byCity.entries()]
+      .map(([name, e]) => {
+        const topScam =
+          Object.entries(e.types).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Other";
+        return {
+          name,
+          reports: e.count,
+          lat: e.latSum / e.count,
+          lng: e.lngSum / e.count,
+          size: Math.min(32, 10 + Math.sqrt(e.count) * 4),
+          topScam,
+        };
+      })
+      .sort((a, b) => b.reports - a.reports);
+  }, [reports]);
+
   const stats = useMemo(() => {
-    const top = [...CITY_MARKERS].sort((a, b) => b.reports - a.reports)[0]?.name ?? "—";
-    return { today: todayCount, cities: CITY_MARKERS.length, top };
-  }, [todayCount]);
+    const top = cityMarkers[0]?.name ?? "—";
+    return { today: todayCount, cities: cityMarkers.length, top };
+  }, [todayCount, cityMarkers]);
 
   function nearMe() {
     if (!navigator.geolocation) return toast.error("Geolocation not supported");
@@ -173,7 +190,7 @@ function MapScreen() {
                 subdomains={["a", "b", "c", "d"]}
                 maxZoom={19}
               />
-              {CITY_MARKERS.map((c) => (
+              {cityMarkers.map((c) => (
                 <CircleMarker
                   key={c.name}
                   center={[c.lat, c.lng]}
@@ -287,7 +304,7 @@ function MapScreen() {
 
         <div className="space-y-2">
           <h2 className="px-1 pt-2 text-sm font-bold">Top cities by reports</h2>
-          {[...CITY_MARKERS].sort((a, b) => b.reports - a.reports).map((c, i) => (
+          {[...cityMarkers].sort((a, b) => b.reports - a.reports).map((c, i) => (
             <div key={c.name} className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5">
               <span className="w-8 text-sm font-bold text-muted-foreground">#{i + 1}</span>
               <span
