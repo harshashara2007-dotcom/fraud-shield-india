@@ -190,7 +190,7 @@ function MapScreen() {
                 subdomains={["a", "b", "c", "d"]}
                 maxZoom={19}
               />
-              {CITY_MARKERS.map((c) => (
+              {cityMarkers.map((c) => (
                 <CircleMarker
                   key={c.name}
                   center={[c.lat, c.lng]}
@@ -304,7 +304,7 @@ function MapScreen() {
 
         <div className="space-y-2">
           <h2 className="px-1 pt-2 text-sm font-bold">Top cities by reports</h2>
-          {[...CITY_MARKERS].sort((a, b) => b.reports - a.reports).map((c, i) => (
+          {[...cityMarkers].sort((a, b) => b.reports - a.reports).map((c, i) => (
             <div key={c.name} className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5">
               <span className="w-8 text-sm font-bold text-muted-foreground">#{i + 1}</span>
               <span
