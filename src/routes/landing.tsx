@@ -200,12 +200,12 @@ function Hero() {
           fintechs.
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-          <a
-            href="#contact"
+          <button
+            onClick={() => openBuy("ScanScam API")}
             className="rounded-xl bg-[#FF2D55] px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-[#FF2D55]/30 transition hover:brightness-110"
           >
-            🚀 Get Free API Trial
-          </a>
+            🛒 Buy Now
+          </button>
           <a
             href="#demo"
             className="rounded-xl border border-white/30 px-6 py-3.5 text-sm font-black text-white transition hover:bg-white/10"
