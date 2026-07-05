@@ -496,7 +496,7 @@ function VerdictPill({ v }: { v: string }) {
 
 function HowItWorks() {
   const steps: [string, string, string][] = [
-    ["🔑", "Get API Key", "Free trial in 30 seconds. No credit card needed."],
+    ["🔑", "Buy & Get API Key", "Pay via UPI and receive your API key within an hour."],
     ["💻", "Make API Call", "Simple REST API. Works with Python, JS, Java, PHP."],
     ["✅", "Get Result", "Instant verdict under 200ms. SAFE, SUSPICIOUS or DANGER."],
   ];
