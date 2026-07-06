@@ -146,6 +146,28 @@ function MapScreen() {
   return (
     <AppShell header={<ScreenHeader title="Live Fraud Map" subtitle="Realtime reports across India" />}>
       <div className="space-y-3 px-4 pb-8 pt-3">
+        {/* Location search + report shortcut */}
+        <div className="flex items-stretch gap-2">
+          <div className="min-w-0 flex-1">
+            <LocationCombobox
+              value={searchLoc}
+              onChange={(loc) => {
+                setSearchLoc(loc);
+                setRecenter([loc.lat, loc.lng]);
+              }}
+              placeholder="Search any city or district…"
+              compact
+            />
+          </div>
+          <Link
+            to="/report"
+            className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-3 text-xs font-bold text-white"
+            aria-label="Report a scam"
+          >
+            <Megaphone className="h-4 w-4" /> Report
+          </Link>
+        </div>
+
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const active = filter === f.id;
