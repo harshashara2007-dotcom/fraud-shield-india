@@ -50,6 +50,8 @@ function DeepfakePage() {
   const [fileType, setFileType] = useState<"image" | "video" | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [frameData, setFrameData] = useState<string | null>(null);
+  const [videoFrames, setVideoFrames] = useState<string[]>([]);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
   const [scanning, setScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
   const [scanProgress, setScanProgress] = useState(0);
@@ -64,6 +66,7 @@ function DeepfakePage() {
   const reset = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(null); setFileType(null); setPreviewUrl(null); setFrameData(null);
+    setVideoFrames([]); setVideoDuration(0);
     setScanning(false); setScanStep(0); setScanProgress(0); setResult(null);
     setError(null); setReported(false);
   };
@@ -77,31 +80,54 @@ function DeepfakePage() {
     });
   }
 
-  async function extractVideoFrame(f: File): Promise<string> {
+  /** Extract up to `count` evenly-spaced frames from the video for temporal analysis. */
+  async function extractVideoFrames(f: File, count = 6): Promise<{ frames: string[]; duration: number }> {
     return new Promise((resolve, reject) => {
       const video = document.createElement("video");
-      video.preload = "metadata";
+      video.preload = "auto";
       video.muted = true;
       video.playsInline = true;
+      video.crossOrigin = "anonymous";
       video.src = URL.createObjectURL(f);
-      video.addEventListener("loadeddata", () => {
-        try {
-          video.currentTime = Math.min(0.1, (video.duration || 1) / 2);
-        } catch { /* ignore */ }
-      });
-      video.addEventListener("seeked", () => {
-        const canvas = document.createElement("canvas");
+      const frames: string[] = [];
+      let duration = 0;
+      let targets: number[] = [];
+      let idx = 0;
+      const canvas = document.createElement("canvas");
+
+      function cleanup() {
+        URL.revokeObjectURL(video.src);
+      }
+
+      video.addEventListener("loadedmetadata", () => {
+        duration = isFinite(video.duration) && video.duration > 0 ? video.duration : 1;
+        // Skip first/last 10% to avoid intros/outros
+        const start = duration * 0.1;
+        const end = duration * 0.9;
+        const step = (end - start) / Math.max(1, count - 1);
+        targets = Array.from({ length: count }, (_, i) => start + step * i);
         const w = video.videoWidth || 640;
         const h = video.videoHeight || 360;
-        canvas.width = Math.min(w, 1280);
+        canvas.width = Math.min(w, 960);
         canvas.height = Math.round(canvas.width * (h / w));
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("Canvas unsupported"));
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(video.src);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
+        try { video.currentTime = targets[0]; } catch { /* ignore */ }
       });
-      video.addEventListener("error", () => reject(new Error("Cannot read video")));
+
+      video.addEventListener("seeked", () => {
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { cleanup(); return reject(new Error("Canvas unsupported")); }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        frames.push(canvas.toDataURL("image/jpeg", 0.78));
+        idx += 1;
+        if (idx >= targets.length) {
+          cleanup();
+          resolve({ frames, duration });
+        } else {
+          try { video.currentTime = targets[idx]; } catch { /* ignore */ }
+        }
+      });
+
+      video.addEventListener("error", () => { cleanup(); reject(new Error("Cannot read video")); });
     });
   }
 
@@ -114,26 +140,38 @@ function DeepfakePage() {
     const url = URL.createObjectURL(f);
     setPreviewUrl(url);
     try {
-      const data = kind === "image" ? await readImageAsDataUrl(f) : await extractVideoFrame(f);
-      setFrameData(data);
+      if (kind === "image") {
+        const data = await readImageAsDataUrl(f);
+        setFrameData(data);
+        setVideoFrames([]);
+      } else {
+        const { frames, duration } = await extractVideoFrames(f, 6);
+        setVideoFrames(frames);
+        setFrameData(frames[0] ?? null);
+        setVideoDuration(duration);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not read file");
     }
   }
 
   async function startAnalysis() {
-    if (!frameData) return;
+    if (!frameData && videoFrames.length === 0) return;
     setScanning(true); setScanStep(0); setScanProgress(0); setError(null);
 
     const stepTimer = setInterval(() => {
       setScanStep((s) => (s + 1) % SCAN_STEPS.length);
     }, 1000);
     const progTimer = setInterval(() => {
-      setScanProgress((p) => Math.min(95, p + 4));
-    }, 200);
+      setScanProgress((p) => Math.min(95, p + 3));
+    }, 250);
 
     try {
-      const res = await analyzeDeepfake({ data: { imageDataUrl: frameData } });
+      const payload =
+        fileType === "video" && videoFrames.length > 0
+          ? { frames: videoFrames, mediaKind: "video" as const, durationSec: videoDuration }
+          : { imageDataUrl: frameData!, mediaKind: "image" as const };
+      const res = await analyzeDeepfake({ data: payload });
       setResult(res as DeepfakeResult);
       setScanProgress(100);
     } catch (e) {
@@ -144,6 +182,7 @@ function DeepfakePage() {
       setTimeout(() => setScanning(false), 400);
     }
   }
+
 
   async function reportDeepfake() {
     if (!result || !fileType) return;
