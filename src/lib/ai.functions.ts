@@ -112,28 +112,51 @@ export const safebotChat = createServerFn({ method: "POST" })
     return { reply: text };
   });
 
-// 6. Deepfake detection (vision)
+// 6. Deepfake detection (vision) — accepts one image OR multiple video frames
 export const analyzeDeepfake = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
-    z.object({ imageDataUrl: z.string().startsWith("data:image/").max(8_000_000) }).parse(input),
+    z
+      .object({
+        imageDataUrl: z.string().startsWith("data:image/").max(8_000_000).optional(),
+        frames: z.array(z.string().startsWith("data:image/").max(4_000_000)).max(8).optional(),
+        mediaKind: z.enum(["image", "video"]).default("image"),
+        durationSec: z.number().optional(),
+      })
+      .refine((v) => !!v.imageDataUrl || (v.frames && v.frames.length > 0), {
+        message: "Provide imageDataUrl or frames[]",
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     const g = gateway();
+    const frames = data.frames && data.frames.length > 0 ? data.frames : [data.imageDataUrl!];
+    const isVideo = data.mediaKind === "video";
+
+    const promptText = isVideo
+      ? `You are an expert deepfake detection AI for India. You are given ${frames.length} sequential frames extracted from a video (in time order). Carefully compare frames for signs of AI generation or face-swap:
+- Facial expressions: are blinks natural in rate and symmetry? Do micro-expressions look coherent frame-to-frame?
+- Facial boundary: any warping, blurring, or seams around the jaw, hairline, ears?
+- Lighting/shadow: do shadows on face match ambient lighting across frames?
+- Skin texture: too smooth, plastic, waxy, or over-consistent across frames?
+- Eye reflections & gaze: mismatched catch-lights, dead stare, unnatural saccades?
+- Teeth/mouth: melted/duplicated teeth, warped lip corners, lip-sync drift over frames?
+- Head pose vs body: does the head move independently of neck/shoulders?
+- Temporal artefacts: flickering, ghosting, misaligned features between frames?
+- Compression artefacts localized only to the face region?
+Weight the verdict across all frames — one weird frame ≠ fake, but consistent anomalies do.
+Return ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink":"NATURAL|UNNATURAL|UNKNOWN","facialBoundary":"CONSISTENT|INCONSISTENT","lighting":"NATURAL|SUSPICIOUS","lipSync":"SYNCED|MISMATCH|UNKNOWN","metadata":"ORIGINAL|SUSPICIOUS","audioAnalysis":"NATURAL|SUSPICIOUS|UNKNOWN","explanation":"2-3 sentences citing specific frame observations","whatToDo":"clear next step"}`
+      : `You are a deepfake detection AI for India. Analyze this image carefully for signs of AI manipulation: unnatural facial boundaries/blending, inconsistent lighting between face and background, blur or artifacts around hair and ears, unnatural skin smoothness, eye reflection inconsistencies, asymmetric facial features, melted/duplicated teeth, mismatched pupils.
+Return ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink":"NATURAL|UNNATURAL|UNKNOWN","facialBoundary":"CONSISTENT|INCONSISTENT","lighting":"NATURAL|SUSPICIOUS","lipSync":"SYNCED|MISMATCH|UNKNOWN","metadata":"ORIGINAL|SUSPICIOUS","audioAnalysis":"NATURAL|SUSPICIOUS|UNKNOWN","explanation":"one short paragraph in simple English","whatToDo":"clear next step"}`;
+
+    const content: Array<{ type: "text"; text: string } | { type: "image"; image: string }> = [
+      { type: "text", text: promptText },
+    ];
+    frames.forEach((f) => content.push({ type: "image", image: f }));
+
     const { text } = await generateText({
       model: g(VISION_MODEL),
       system: SYS,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `You are a deepfake detection AI for India. Analyze this image/video frame carefully for signs of AI manipulation: unnatural facial boundaries/blending, inconsistent lighting between face and background, blur or artifacts around hair and ears, unnatural skin smoothness, eye reflection inconsistencies, asymmetric facial features.\nReturn ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink":"NATURAL|UNNATURAL|UNKNOWN","facialBoundary":"CONSISTENT|INCONSISTENT","lighting":"NATURAL|SUSPICIOUS","lipSync":"SYNCED|MISMATCH|UNKNOWN","metadata":"ORIGINAL|SUSPICIOUS","audioAnalysis":"NATURAL|SUSPICIOUS|UNKNOWN","explanation":"one short paragraph in simple English","whatToDo":"clear next step"}`,
-            },
-            { type: "image", image: data.imageDataUrl },
-          ],
-        },
-      ],
+      messages: [{ role: "user", content }],
     });
     try {
       return JSON.parse(stripJsonFences(text));
@@ -152,3 +175,4 @@ export const analyzeDeepfake = createServerFn({ method: "POST" })
       };
     }
   });
+

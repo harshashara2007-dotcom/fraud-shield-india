@@ -1,13 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
+import { LocationCombobox } from "@/components/LocationCombobox";
 import { supabase } from "@/integrations/supabase/client";
 import { scamMeta, timeAgo } from "@/lib/format";
+import type { IndiaLocation } from "@/lib/india-locations";
 import { SCAM_COLORS, colorFor } from "@/lib/scan-colors";
-import { MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, ChevronDown, ChevronUp, Megaphone } from "lucide-react";
+
 
 export const Route = createFileRoute("/map")({
   head: () => ({ meta: [{ title: "Live Fraud Map — ScanScam" }] }),
@@ -48,8 +52,10 @@ function MapScreen() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<string>("All");
   const [recenter, setRecenter] = useState<[number, number] | null>(null);
+  const [searchLoc, setSearchLoc] = useState<IndiaLocation | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
+
 
   useEffect(() => {
     let mounted = true;
@@ -140,6 +146,28 @@ function MapScreen() {
   return (
     <AppShell header={<ScreenHeader title="Live Fraud Map" subtitle="Realtime reports across India" />}>
       <div className="space-y-3 px-4 pb-8 pt-3">
+        {/* Location search + report shortcut */}
+        <div className="flex items-stretch gap-2">
+          <div className="min-w-0 flex-1">
+            <LocationCombobox
+              value={searchLoc}
+              onChange={(loc) => {
+                setSearchLoc(loc);
+                setRecenter([loc.lat, loc.lng]);
+              }}
+              placeholder="Search any city or district…"
+              compact
+            />
+          </div>
+          <Link
+            to="/report"
+            className="flex shrink-0 items-center gap-1 rounded-xl bg-primary px-3 text-xs font-bold text-white"
+            aria-label="Report a scam"
+          >
+            <Megaphone className="h-4 w-4" /> Report
+          </Link>
+        </div>
+
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
           {FILTERS.map((f) => {
             const active = filter === f.id;
@@ -253,7 +281,34 @@ function MapScreen() {
                   </CircleMarker>
                 );
               })}
+              {searchLoc && (
+                <CircleMarker
+                  center={[searchLoc.lat, searchLoc.lng]}
+                  radius={12}
+                  pathOptions={{
+                    color: "#FF2D55",
+                    weight: 3,
+                    fillColor: "#FF2D55",
+                    fillOpacity: 0.25,
+                    className: "scam-pulse",
+                  }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -8]} className="city-label">
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontWeight: 800, color: "#FF2D55", fontSize: 12 }}>📍 {searchLoc.city}</div>
+                      <div style={{ color: "#64748B", fontSize: 10 }}>{searchLoc.state}</div>
+                    </div>
+                  </Tooltip>
+                  <Popup className="dark-popup">
+                    <div style={{ minWidth: 200, fontFamily: "Inter, sans-serif", background: "#12233d", color: "#fff", padding: 12, borderRadius: 12, border: "1px solid #1e3a5f" }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: "#FF2D55" }}>📍 {searchLoc.city}</div>
+                      <div style={{ fontSize: 12, marginTop: 4, color: "#c9d4e2" }}>{searchLoc.state}</div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              )}
               <Recenter to={recenter} />
+
             </MapContainer>
           </div>
 

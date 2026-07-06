@@ -2,9 +2,12 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
+import { LocationCombobox } from "@/components/LocationCombobox";
 import { supabase } from "@/integrations/supabase/client";
-import { SCAM_TYPES, INDIAN_CITIES } from "@/lib/format";
+import { SCAM_TYPES } from "@/lib/format";
+import { INDIA_LOCATIONS, type IndiaLocation } from "@/lib/india-locations";
 import { Check, ChevronRight, ExternalLink, CheckCircle2 } from "lucide-react";
+
 
 export const Route = createFileRoute("/report")({
   head: () => ({ meta: [{ title: "Report a Scam — ScanScam" }] }),
@@ -19,31 +22,32 @@ function ReportScreen() {
   const [link, setLink] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [city, setCity] = useState(INDIAN_CITIES[0].city);
+  const [city, setCity] = useState<IndiaLocation>(INDIA_LOCATIONS[0]);
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<{ total: number } | null>(null);
   const nav = useNavigate();
 
-  // Prefill city from geolocation
+  // Prefill city from geolocation using nearest location
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition((pos) => {
       const { latitude, longitude } = pos.coords;
-      let best = INDIAN_CITIES[0];
+      let best = INDIA_LOCATIONS[0];
       let dist = Infinity;
-      for (const c of INDIAN_CITIES) {
+      for (const c of INDIA_LOCATIONS) {
         const d = (c.lat - latitude) ** 2 + (c.lng - longitude) ** 2;
         if (d < dist) { dist = d; best = c; }
       }
-      setCity(best.city);
+      setCity(best);
     });
   }, []);
+
 
   async function submit() {
     if (!type) return;
     setSubmitting(true);
     try {
-      const c = INDIAN_CITIES.find((x) => x.city === city) ?? INDIAN_CITIES[0];
+      const c = city;
       const jitter = () => (Math.random() - 0.5) * 0.05;
 
       let screenshotPath: string | null = null;
@@ -161,17 +165,15 @@ function ReportScreen() {
               <Input label="Suspicious link" placeholder="https://…" value={link} onChange={setLink} />
               <Input label="Amount lost (₹)" placeholder="0" value={amount} onChange={setAmount} type="number" />
               <div>
-                <label className="text-xs font-semibold text-muted-foreground">City</label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-border bg-card px-4 py-3 text-sm"
-                >
-                  {INDIAN_CITIES.map((c) => (
-                    <option key={c.city} value={c.city}>{c.city}, {c.state}</option>
-                  ))}
-                </select>
+                <label className="text-xs font-semibold text-muted-foreground">City or district</label>
+                <div className="mt-1">
+                  <LocationCombobox value={city} onChange={setCity} />
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  Search across {INDIA_LOCATIONS.length}+ districts of India.
+                </p>
               </div>
+
               <div>
                 <label className="text-xs font-semibold text-muted-foreground">Description</label>
                 <textarea
