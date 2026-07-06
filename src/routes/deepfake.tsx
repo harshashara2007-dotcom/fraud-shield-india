@@ -224,10 +224,18 @@ function DeepfakePage() {
               onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], "video")} />
             {error && <p className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">{error}</p>}
             {file && frameData && (
-              <Button onClick={startAnalysis} className="h-12 w-full bg-[#7C3AED] text-base font-bold text-white hover:bg-[#6D28D9]">
-                🔍 Analyze for Deepfake
-              </Button>
+              <>
+                {fileType === "video" && videoFrames.length > 0 && (
+                  <p className="text-center text-[11px] text-muted-foreground">
+                    ✓ Extracted {videoFrames.length} frames across {videoDuration.toFixed(1)}s — ready for deep temporal analysis
+                  </p>
+                )}
+                <Button onClick={startAnalysis} className="h-12 w-full bg-[#7C3AED] text-base font-bold text-white hover:bg-[#6D28D9]">
+                  🔍 Analyze for Deepfake
+                </Button>
+              </>
             )}
+
           </>
         )}
 
