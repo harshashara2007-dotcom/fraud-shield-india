@@ -5,9 +5,11 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { LiveTicker } from "@/components/LiveTicker";
 import { ScamFeed } from "@/components/ScamFeed";
 import { scamOfDay } from "@/lib/format";
+import { useTheme } from "@/lib/theme";
 import supportQr from "@/assets/support-qr.jpeg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
-import { ScanLine, CreditCard, Image as ImageIcon, Phone, Map as MapIcon, Megaphone, Bot, ShieldCheck, BarChart3, Heart, Copy, X, LogIn, LogOut, Shield } from "lucide-react";
+import { ScanLine, CreditCard, Image as ImageIcon, Phone, Map as MapIcon, Megaphone, Bot, ShieldCheck, BarChart3, Heart, Copy, X, LogIn, Shield, User, Sun, Moon } from "lucide-react";
+
 
 const SUPPORT_UPI = "reenaashara22@oksbi";
 
@@ -49,10 +51,8 @@ function Home() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    toast.success("Signed out");
-  }
+  const { theme, toggle } = useTheme();
+
 
   return (
     <AppShell
@@ -69,6 +69,13 @@ function Home() {
           subtitle="AI fraud detector for India"
           right={
             <div className="flex items-center gap-1.5">
+              <button
+                onClick={toggle}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-muted/40"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
               {userEmail ? (
                 <>
                   {isAdmin && (
@@ -79,13 +86,13 @@ function Home() {
                       <Shield className="h-3 w-3" /> Admin
                     </Link>
                   )}
-                  <button
-                    onClick={signOut}
-                    className="flex items-center gap-1 rounded-full bg-muted/40 px-2.5 py-1 text-[11px] font-semibold"
-                    aria-label="Sign out"
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-1 rounded-full bg-action px-2.5 py-1 text-[11px] font-bold text-white"
+                    aria-label="Profile"
                   >
-                    <LogOut className="h-3 w-3" />
-                  </button>
+                    <User className="h-3 w-3" /> Profile
+                  </Link>
                 </>
               ) : (
                 <Link
@@ -97,6 +104,7 @@ function Home() {
               )}
             </div>
           }
+
         />
       }
     >
