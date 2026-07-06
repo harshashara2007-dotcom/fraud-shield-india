@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap, Marker } from "react-leaflet";
-import L from "leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { LocationCombobox } from "@/components/LocationCombobox";
@@ -281,7 +281,34 @@ function MapScreen() {
                   </CircleMarker>
                 );
               })}
+              {searchLoc && (
+                <CircleMarker
+                  center={[searchLoc.lat, searchLoc.lng]}
+                  radius={12}
+                  pathOptions={{
+                    color: "#FF2D55",
+                    weight: 3,
+                    fillColor: "#FF2D55",
+                    fillOpacity: 0.25,
+                    className: "scam-pulse",
+                  }}
+                >
+                  <Tooltip permanent direction="top" offset={[0, -8]} className="city-label">
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontWeight: 800, color: "#FF2D55", fontSize: 12 }}>📍 {searchLoc.city}</div>
+                      <div style={{ color: "#64748B", fontSize: 10 }}>{searchLoc.state}</div>
+                    </div>
+                  </Tooltip>
+                  <Popup className="dark-popup">
+                    <div style={{ minWidth: 200, fontFamily: "Inter, sans-serif", background: "#12233d", color: "#fff", padding: 12, borderRadius: 12, border: "1px solid #1e3a5f" }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: "#FF2D55" }}>📍 {searchLoc.city}</div>
+                      <div style={{ fontSize: 12, marginTop: 4, color: "#c9d4e2" }}>{searchLoc.state}</div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              )}
               <Recenter to={recenter} />
+
             </MapContainer>
           </div>
 
