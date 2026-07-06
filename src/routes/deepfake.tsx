@@ -34,13 +34,16 @@ interface DeepfakeResult {
 }
 
 const SCAN_STEPS = [
-  "Scanning facial movements...",
+  "Extracting video frames...",
+  "Scanning facial expressions...",
   "Checking eye blink patterns...",
-  "Analyzing lip sync...",
+  "Analyzing lip sync across frames...",
   "Checking lighting consistency...",
+  "Detecting temporal artefacts...",
   "Verifying metadata...",
   "Calculating deepfake score...",
 ];
+
 
 function DeepfakePage() {
   const [file, setFile] = useState<File | null>(null);
