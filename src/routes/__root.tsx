@@ -122,6 +122,14 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    const saved = (typeof localStorage !== "undefined" && localStorage.getItem("scanscam-theme")) || "dark";
+    const theme = saved === "light" ? "light" : "dark";
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+    document.documentElement.style.colorScheme = theme;
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SplashGate>
@@ -129,12 +137,12 @@ function RootComponent() {
       </SplashGate>
       <Toaster
         position="top-center"
-        theme="dark"
         toastOptions={{
-          style: { background: "#12233D", color: "#F2F6FB", border: "1px solid #1E3A5F" },
+          className: "!bg-card !text-card-foreground !border !border-border",
         }}
       />
     </QueryClientProvider>
   );
 }
+
 
