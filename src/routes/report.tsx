@@ -165,17 +165,15 @@ function ReportScreen() {
               <Input label="Suspicious link" placeholder="https://…" value={link} onChange={setLink} />
               <Input label="Amount lost (₹)" placeholder="0" value={amount} onChange={setAmount} type="number" />
               <div>
-                <label className="text-xs font-semibold text-muted-foreground">City</label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-border bg-card px-4 py-3 text-sm"
-                >
-                  {INDIAN_CITIES.map((c) => (
-                    <option key={c.city} value={c.city}>{c.city}, {c.state}</option>
-                  ))}
-                </select>
+                <label className="text-xs font-semibold text-muted-foreground">City or district</label>
+                <div className="mt-1">
+                  <LocationCombobox value={city} onChange={setCity} />
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  Search across {INDIA_LOCATIONS.length}+ districts of India.
+                </p>
               </div>
+
               <div>
                 <label className="text-xs font-semibold text-muted-foreground">Description</label>
                 <textarea
