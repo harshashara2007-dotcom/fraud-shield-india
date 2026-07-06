@@ -1,13 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap, Marker } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
+import { LocationCombobox } from "@/components/LocationCombobox";
 import { supabase } from "@/integrations/supabase/client";
 import { scamMeta, timeAgo } from "@/lib/format";
+import type { IndiaLocation } from "@/lib/india-locations";
 import { SCAM_COLORS, colorFor } from "@/lib/scan-colors";
-import { MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, ChevronDown, ChevronUp, Megaphone } from "lucide-react";
+
 
 export const Route = createFileRoute("/map")({
   head: () => ({ meta: [{ title: "Live Fraud Map — ScanScam" }] }),
@@ -48,8 +52,10 @@ function MapScreen() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filter, setFilter] = useState<string>("All");
   const [recenter, setRecenter] = useState<[number, number] | null>(null);
+  const [searchLoc, setSearchLoc] = useState<IndiaLocation | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
+
 
   useEffect(() => {
     let mounted = true;
