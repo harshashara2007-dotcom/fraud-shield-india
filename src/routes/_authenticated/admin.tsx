@@ -165,12 +165,12 @@ function AdminScreen() {
   async function addBlacklist(kind: "phone" | "upi") {
     const val = prompt(`Add ${kind === "phone" ? "phone number" : "UPI ID"} to blacklist:`);
     if (!val) return;
-    const scamType = prompt("Scam category (e.g. KYC Fraud, Lottery):") ?? undefined;
+    const scamType = prompt("Scam category (e.g. KYC Fraud, Lottery):") || undefined;
     if (kind === "phone") {
-      const { error } = await supabase.rpc("increment_phone_report", { _number: val.trim(), _scam_type: scamType || null });
+      const { error } = await supabase.rpc("increment_phone_report", { _number: val.trim(), _scam_type: scamType });
       if (error) return toast.error(error.message);
     } else {
-      const { error } = await supabase.rpc("increment_upi_report", { _upi_id: val.trim(), _scam_type: scamType || null });
+      const { error } = await supabase.rpc("increment_upi_report", { _upi_id: val.trim(), _scam_type: scamType });
       if (error) return toast.error(error.message);
     }
     toast.success("Added to blacklist");
@@ -179,10 +179,13 @@ function AdminScreen() {
 
   async function removeBlacklist(kind: "phone" | "upi", identifier: string) {
     if (!confirm(`Remove ${identifier} from blacklist?`)) return;
-    const col = kind === "phone" ? "number" : "upi_id";
-    const tbl = kind === "phone" ? "phone_blacklist" : "upi_blacklist";
-    const { error } = await supabase.from(tbl).delete().eq(col, identifier);
-    if (error) return toast.error(error.message);
+    if (kind === "phone") {
+      const { error } = await supabase.from("phone_blacklist").delete().eq("number", identifier);
+      if (error) return toast.error(error.message);
+    } else {
+      const { error } = await supabase.from("upi_blacklist").delete().eq("upi_id", identifier);
+      if (error) return toast.error(error.message);
+    }
     toast.success("Removed");
     refreshAll();
   }
