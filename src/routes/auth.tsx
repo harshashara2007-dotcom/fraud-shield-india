@@ -174,6 +174,14 @@ function AuthScreen() {
             </button>
           </form>
 
+          {mode === "signin" && (
+            <div className="mt-3 text-center">
+              <Link to="/forgot-password" className="text-[12px] font-semibold text-action hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+          )}
+
           <p className="mt-4 text-center text-[11px] text-muted-foreground">
             By continuing you agree to our{" "}
             <Link to="/privacy-policy" className="text-action">Privacy Policy</Link>.
