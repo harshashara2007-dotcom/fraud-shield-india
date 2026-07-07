@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_users: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          email: string
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       deepfakes: {
         Row: {
           city: string | null
@@ -286,6 +313,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_ban_by_email: {
+        Args: { _email: string; _reason?: string }
+        Returns: undefined
+      }
+      admin_demote: { Args: { _user_id: string }; Returns: undefined }
+      admin_list_api_keys: {
+        Args: { _limit?: number }
+        Returns: {
+          activated_at: string
+          api_key: string
+          created_at: string
+          email: string
+          id: string
+          plan: string
+          status: string
+        }[]
+      }
       admin_list_reports: {
         Args: { _limit?: number }
         Returns: {
@@ -301,6 +345,26 @@ export type Database = {
           upi_id: string
         }[]
       }
+      admin_list_users: {
+        Args: { _limit?: number }
+        Returns: {
+          created_at: string
+          email: string
+          is_admin: boolean
+          is_banned: boolean
+          last_sign_in_at: string
+          user_id: string
+        }[]
+      }
+      admin_promote_by_email: {
+        Args: { _email: string }
+        Returns: {
+          email: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
+      }
+      admin_unban: { Args: { _user_id: string }; Returns: undefined }
       get_admin_stats: {
         Args: never
         Returns: {
@@ -340,6 +404,7 @@ export type Database = {
         Args: { _scam_type?: string; _upi_id: string }
         Returns: undefined
       }
+      is_banned: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"
