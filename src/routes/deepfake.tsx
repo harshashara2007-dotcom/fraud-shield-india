@@ -141,6 +141,51 @@ function DeepfakePage() {
     });
   }
 
+  /** Extract audio waveform features using WebAudio API — helps detect AI-generated voice. */
+  async function extractAudioStats(f: File): Promise<AudioStats> {
+    const empty: AudioStats = { duration: 0, rmsSegments: [], zeroCrossingRate: 0, silenceRatio: 0, dynamicRange: 0, hasAudio: false };
+    try {
+      const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext | undefined;
+      if (!AC) return empty;
+      const ctx = new AC();
+      const buf = await f.arrayBuffer();
+      const decoded = await ctx.decodeAudioData(buf.slice(0));
+      const data = decoded.getChannelData(0);
+      const duration = decoded.duration;
+      if (!data.length) { ctx.close(); return empty; }
+      const segs = 12;
+      const segLen = Math.floor(data.length / segs);
+      const rmsSegments: number[] = [];
+      let zc = 0;
+      let silent = 0;
+      let peak = 0;
+      for (let s = 0; s < segs; s++) {
+        let sum = 0;
+        for (let i = 0; i < segLen; i++) {
+          const v = data[s * segLen + i] || 0;
+          sum += v * v;
+          if (Math.abs(v) > peak) peak = Math.abs(v);
+          if (i > 0 && ((data[s * segLen + i - 1] || 0) >= 0) !== (v >= 0)) zc++;
+        }
+        const rms = Math.sqrt(sum / segLen);
+        rmsSegments.push(Number(rms.toFixed(4)));
+        if (rms < 0.005) silent++;
+      }
+      ctx.close();
+      const avgRms = rmsSegments.reduce((a, b) => a + b, 0) / rmsSegments.length;
+      return {
+        duration: Number(duration.toFixed(2)),
+        rmsSegments,
+        zeroCrossingRate: Number((zc / data.length).toFixed(5)),
+        silenceRatio: Number((silent / segs).toFixed(2)),
+        dynamicRange: Number((peak - avgRms).toFixed(4)),
+        hasAudio: peak > 0.001,
+      };
+    } catch {
+      return empty;
+    }
+  }
+
   async function handleFile(f: File, kind: "image" | "video") {
     setError(null); setResult(null); setReported(false);
     if (kind === "video" && f.size > 50 * 1024 * 1024) {
@@ -154,11 +199,17 @@ function DeepfakePage() {
         const data = await readImageAsDataUrl(f);
         setFrameData(data);
         setVideoFrames([]);
+        setAudioStats(null);
       } else {
-        const { frames, duration } = await extractVideoFrames(f, 6);
+        // Extract frames and audio in parallel — 12 frames for maximum accuracy
+        const [{ frames, duration }, audio] = await Promise.all([
+          extractVideoFrames(f, 12),
+          extractAudioStats(f),
+        ]);
         setVideoFrames(frames);
         setFrameData(frames[0] ?? null);
         setVideoDuration(duration);
+        setAudioStats(audio);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not read file");
@@ -173,15 +224,36 @@ function DeepfakePage() {
       setScanStep((s) => (s + 1) % SCAN_STEPS.length);
     }, 1000);
     const progTimer = setInterval(() => {
-      setScanProgress((p) => Math.min(95, p + 3));
+      setScanProgress((p) => Math.min(95, p + 2));
     }, 250);
 
     try {
       const payload =
         fileType === "video" && videoFrames.length > 0
-          ? { frames: videoFrames, mediaKind: "video" as const, durationSec: videoDuration }
+          ? {
+              frames: videoFrames,
+              mediaKind: "video" as const,
+              durationSec: videoDuration,
+              audioStats: audioStats ?? undefined,
+            }
           : { imageDataUrl: frameData!, mediaKind: "image" as const };
-      const res = await analyzeDeepfake({ data: payload });
+      // Two-pass cross-check for maximum accuracy on video
+      let res = await analyzeDeepfake({ data: payload });
+      if (fileType === "video" && videoFrames.length > 6) {
+        // Second pass focused on second half of the video
+        try {
+          const half = Math.floor(videoFrames.length / 2);
+          const res2 = await analyzeDeepfake({
+            data: {
+              frames: videoFrames.slice(half),
+              mediaKind: "video" as const,
+              durationSec: videoDuration,
+              audioStats: audioStats ?? undefined,
+            },
+          });
+          res = reconcileVerdicts(res as DeepfakeResult, res2 as DeepfakeResult);
+        } catch { /* keep first pass */ }
+      }
       setResult(res as DeepfakeResult);
       setScanProgress(100);
     } catch (e) {
@@ -192,6 +264,7 @@ function DeepfakePage() {
       setTimeout(() => setScanning(false), 400);
     }
   }
+
 
 
   async function reportDeepfake() {
