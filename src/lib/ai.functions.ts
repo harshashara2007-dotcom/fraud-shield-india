@@ -112,15 +112,25 @@ export const safebotChat = createServerFn({ method: "POST" })
     return { reply: text };
   });
 
-// 6. Deepfake detection (vision) — accepts one image OR multiple video frames
+// 6. Deepfake detection (vision) — accepts one image OR multiple video frames + optional audio stats
 export const analyzeDeepfake = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
         imageDataUrl: z.string().startsWith("data:image/").max(8_000_000).optional(),
-        frames: z.array(z.string().startsWith("data:image/").max(4_000_000)).max(8).optional(),
+        frames: z.array(z.string().startsWith("data:image/").max(4_000_000)).max(14).optional(),
         mediaKind: z.enum(["image", "video"]).default("image"),
         durationSec: z.number().optional(),
+        audioStats: z
+          .object({
+            duration: z.number(),
+            rmsSegments: z.array(z.number()).max(24),
+            zeroCrossingRate: z.number(),
+            silenceRatio: z.number(),
+            dynamicRange: z.number(),
+            hasAudio: z.boolean(),
+          })
+          .optional(),
       })
       .refine((v) => !!v.imageDataUrl || (v.frames && v.frames.length > 0), {
         message: "Provide imageDataUrl or frames[]",
