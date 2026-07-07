@@ -149,7 +149,7 @@ function AdminScreen() {
   async function banUser(u: UserRow) {
     const reason = prompt(`Ban ${u.email}? Optional reason:`);
     if (reason === null) return;
-    const { error } = await supabase.rpc("admin_ban_by_email", { _email: u.email, _reason: reason || null });
+    const { error } = await supabase.rpc("admin_ban_by_email", { _email: u.email, _reason: reason || undefined });
     if (error) return toast.error(error.message);
     toast.success("User banned");
     refreshAll();
