@@ -16,10 +16,12 @@ import { Route as SafetyRouteImport } from './routes/safety'
 import { Route as SafebotRouteImport } from './routes/safebot'
 import { Route as SafeNumbersRouteImport } from './routes/safe-numbers'
 import { Route as SafeCheckRouteImport } from './routes/safe-check'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportRouteImport } from './routes/report'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LandingRouteImport } from './routes/landing'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DeepfakeRouteImport } from './routes/deepfake'
 import { Route as CallRouteImport } from './routes/call'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -65,6 +67,11 @@ const SafeCheckRoute = SafeCheckRouteImport.update({
   path: '/safe-check',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportRoute = ReportRouteImport.update({
   id: '/report',
   path: '/report',
@@ -83,6 +90,11 @@ const MapRoute = MapRouteImport.update({
 const LandingRoute = LandingRouteImport.update({
   id: '/landing',
   path: '/landing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeepfakeRoute = DeepfakeRouteImport.update({
@@ -137,10 +149,12 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/landing': typeof LandingRoute
   '/map': typeof MapRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/safe-check': typeof SafeCheckRoute
   '/safe-numbers': typeof SafeNumbersRoute
   '/safebot': typeof SafebotRoute
@@ -158,10 +172,12 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/landing': typeof LandingRoute
   '/map': typeof MapRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/safe-check': typeof SafeCheckRoute
   '/safe-numbers': typeof SafeNumbersRoute
   '/safebot': typeof SafebotRoute
@@ -181,10 +197,12 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/call': typeof CallRoute
   '/deepfake': typeof DeepfakeRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/landing': typeof LandingRoute
   '/map': typeof MapRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/report': typeof ReportRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/safe-check': typeof SafeCheckRoute
   '/safe-numbers': typeof SafeNumbersRoute
   '/safebot': typeof SafebotRoute
@@ -204,10 +222,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/call'
     | '/deepfake'
+    | '/forgot-password'
     | '/landing'
     | '/map'
     | '/privacy-policy'
     | '/report'
+    | '/reset-password'
     | '/safe-check'
     | '/safe-numbers'
     | '/safebot'
@@ -225,10 +245,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/call'
     | '/deepfake'
+    | '/forgot-password'
     | '/landing'
     | '/map'
     | '/privacy-policy'
     | '/report'
+    | '/reset-password'
     | '/safe-check'
     | '/safe-numbers'
     | '/safebot'
@@ -247,10 +269,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/call'
     | '/deepfake'
+    | '/forgot-password'
     | '/landing'
     | '/map'
     | '/privacy-policy'
     | '/report'
+    | '/reset-password'
     | '/safe-check'
     | '/safe-numbers'
     | '/safebot'
@@ -270,10 +294,12 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CallRoute: typeof CallRoute
   DeepfakeRoute: typeof DeepfakeRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LandingRoute: typeof LandingRoute
   MapRoute: typeof MapRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ReportRoute: typeof ReportRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SafeCheckRoute: typeof SafeCheckRoute
   SafeNumbersRoute: typeof SafeNumbersRoute
   SafebotRoute: typeof SafebotRoute
@@ -334,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SafeCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/report': {
       id: '/report'
       path: '/report'
@@ -360,6 +393,13 @@ declare module '@tanstack/react-router' {
       path: '/landing'
       fullPath: '/landing'
       preLoaderRoute: typeof LandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deepfake': {
@@ -449,10 +489,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CallRoute: CallRoute,
   DeepfakeRoute: DeepfakeRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LandingRoute: LandingRoute,
   MapRoute: MapRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   ReportRoute: ReportRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SafeCheckRoute: SafeCheckRoute,
   SafeNumbersRoute: SafeNumbersRoute,
   SafebotRoute: SafebotRoute,
@@ -464,13 +506,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -54,11 +54,20 @@ function AuthScreen() {
         if (error) throw error;
         toast.success("Account created — you're signed in 🎉");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email: parsedEmail.data,
           password: parsedPw.data,
         });
         if (error) throw error;
+        if (signInData.user) {
+          const { data: banned } = await supabase.rpc("is_banned", { _user_id: signInData.user.id });
+          if (banned) {
+            await supabase.auth.signOut();
+            toast.error("Your account has been suspended by an admin.");
+            setLoading(false);
+            return;
+          }
+        }
         toast.success("Welcome back 👋");
       }
       navigate({ to: "/" });
@@ -164,6 +173,14 @@ function AuthScreen() {
               {mode === "signin" ? "Sign in" : "Create account"}
             </button>
           </form>
+
+          {mode === "signin" && (
+            <div className="mt-3 text-center">
+              <Link to="/forgot-password" className="text-[12px] font-semibold text-action hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+          )}
 
           <p className="mt-4 text-center text-[11px] text-muted-foreground">
             By continuing you agree to our{" "}

@@ -112,15 +112,25 @@ export const safebotChat = createServerFn({ method: "POST" })
     return { reply: text };
   });
 
-// 6. Deepfake detection (vision) — accepts one image OR multiple video frames
+// 6. Deepfake detection (vision) — accepts one image OR multiple video frames + optional audio stats
 export const analyzeDeepfake = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
         imageDataUrl: z.string().startsWith("data:image/").max(8_000_000).optional(),
-        frames: z.array(z.string().startsWith("data:image/").max(4_000_000)).max(8).optional(),
+        frames: z.array(z.string().startsWith("data:image/").max(4_000_000)).max(14).optional(),
         mediaKind: z.enum(["image", "video"]).default("image"),
         durationSec: z.number().optional(),
+        audioStats: z
+          .object({
+            duration: z.number(),
+            rmsSegments: z.array(z.number()).max(24),
+            zeroCrossingRate: z.number(),
+            silenceRatio: z.number(),
+            dynamicRange: z.number(),
+            hasAudio: z.boolean(),
+          })
+          .optional(),
       })
       .refine((v) => !!v.imageDataUrl || (v.frames && v.frames.length > 0), {
         message: "Provide imageDataUrl or frames[]",
@@ -131,6 +141,19 @@ export const analyzeDeepfake = createServerFn({ method: "POST" })
     const g = gateway();
     const frames = data.frames && data.frames.length > 0 ? data.frames : [data.imageDataUrl!];
     const isVideo = data.mediaKind === "video";
+
+    const audio = data.audioStats;
+    const audioBlock = audio && audio.hasAudio
+      ? `\n\nAUDIO WAVEFORM ANALYSIS (from user's device — treat as objective evidence):
+- duration: ${audio.duration}s
+- RMS energy per segment (12 windows, low→high): [${audio.rmsSegments.join(", ")}]
+- zero-crossing rate: ${audio.zeroCrossingRate}
+- silence ratio: ${audio.silenceRatio} (0=no silence, 1=all silence)
+- dynamic range: ${audio.dynamicRange}
+Interpret: AI-generated voices often show UNNATURALLY UNIFORM RMS (no breathing pauses, silence ratio ~0), abnormally low or robotic zero-crossing rate, and compressed dynamic range. Real human speech has bursty RMS and 0.1–0.4 silence ratio.`
+      : audio && !audio.hasAudio
+      ? `\n\nAUDIO: This video has no audible audio track. Weight verdict on visual cues only.`
+      : "";
 
     const promptText = isVideo
       ? `You are an expert deepfake detection AI for India. You are given ${frames.length} sequential frames extracted from a video (in time order). Carefully compare frames for signs of AI generation or face-swap:
@@ -143,9 +166,11 @@ export const analyzeDeepfake = createServerFn({ method: "POST" })
 - Head pose vs body: does the head move independently of neck/shoulders?
 - Temporal artefacts: flickering, ghosting, misaligned features between frames?
 - Compression artefacts localized only to the face region?
-Weight the verdict across all frames — one weird frame ≠ fake, but consistent anomalies do.
-Return ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink":"NATURAL|UNNATURAL|UNKNOWN","facialBoundary":"CONSISTENT|INCONSISTENT","lighting":"NATURAL|SUSPICIOUS","lipSync":"SYNCED|MISMATCH|UNKNOWN","metadata":"ORIGINAL|SUSPICIOUS","audioAnalysis":"NATURAL|SUSPICIOUS|UNKNOWN","explanation":"2-3 sentences citing specific frame observations","whatToDo":"clear next step"}`
-      : `You are a deepfake detection AI for India. Analyze this image carefully for signs of AI manipulation: unnatural facial boundaries/blending, inconsistent lighting between face and background, blur or artifacts around hair and ears, unnatural skin smoothness, eye reflection inconsistencies, asymmetric facial features, melted/duplicated teeth, mismatched pupils.
+- Background: static/looped backgrounds behind a moving face are a strong AI signal.
+- Known-face check: if this looks like a public figure (Indian politician, actor, banker, RBI/SBI official), be extra strict — face-swap scams commonly use them.${audioBlock}
+Weight the verdict across all ${frames.length} frames — one weird frame ≠ fake, but consistent anomalies do. Be decisive: only pick UNCERTAIN when signal is genuinely mixed. If ≥3 strong indicators point to AI, verdict is FAKE.
+Return ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink":"NATURAL|UNNATURAL|UNKNOWN","facialBoundary":"CONSISTENT|INCONSISTENT","lighting":"NATURAL|SUSPICIOUS","lipSync":"SYNCED|MISMATCH|UNKNOWN","metadata":"ORIGINAL|SUSPICIOUS","audioAnalysis":"NATURAL|SUSPICIOUS|UNKNOWN","explanation":"2-3 sentences citing SPECIFIC frame numbers and observations","whatToDo":"clear next step"}`
+      : `You are a deepfake detection AI for India. Analyze this image carefully for signs of AI manipulation: unnatural facial boundaries/blending, inconsistent lighting between face and background, blur or artifacts around hair and ears, unnatural skin smoothness, eye reflection inconsistencies, asymmetric facial features, melted/duplicated teeth, mismatched pupils, GAN-typical texture patterns.
 Return ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink":"NATURAL|UNNATURAL|UNKNOWN","facialBoundary":"CONSISTENT|INCONSISTENT","lighting":"NATURAL|SUSPICIOUS","lipSync":"SYNCED|MISMATCH|UNKNOWN","metadata":"ORIGINAL|SUSPICIOUS","audioAnalysis":"NATURAL|SUSPICIOUS|UNKNOWN","explanation":"one short paragraph in simple English","whatToDo":"clear next step"}`;
 
     const content: Array<{ type: "text"; text: string } | { type: "image"; image: string }> = [
