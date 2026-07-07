@@ -45,6 +45,15 @@ const SCAN_STEPS = [
 ];
 
 
+type AudioStats = {
+  duration: number;
+  rmsSegments: number[];
+  zeroCrossingRate: number;
+  silenceRatio: number;
+  dynamicRange: number;
+  hasAudio: boolean;
+};
+
 function DeepfakePage() {
   const [file, setFile] = useState<File | null>(null);
   const [fileType, setFileType] = useState<"image" | "video" | null>(null);
@@ -52,6 +61,7 @@ function DeepfakePage() {
   const [frameData, setFrameData] = useState<string | null>(null);
   const [videoFrames, setVideoFrames] = useState<string[]>([]);
   const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [audioStats, setAudioStats] = useState<AudioStats | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
   const [scanProgress, setScanProgress] = useState(0);
@@ -66,7 +76,7 @@ function DeepfakePage() {
   const reset = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(null); setFileType(null); setPreviewUrl(null); setFrameData(null);
-    setVideoFrames([]); setVideoDuration(0);
+    setVideoFrames([]); setVideoDuration(0); setAudioStats(null);
     setScanning(false); setScanStep(0); setScanProgress(0); setResult(null);
     setError(null); setReported(false);
   };
