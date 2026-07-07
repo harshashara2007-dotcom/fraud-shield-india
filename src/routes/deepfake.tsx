@@ -44,6 +44,24 @@ const SCAN_STEPS = [
   "Calculating deepfake score...",
 ];
 
+/** Reconcile two independent analysis passes — the strictest verdict wins for maximum accuracy. */
+function reconcileVerdicts(a: DeepfakeResult, b: DeepfakeResult): DeepfakeResult {
+  const rank: Record<string, number> = { FAKE: 3, UNCERTAIN: 2, REAL: 1 };
+  const worst = (rank[a.verdict] ?? 2) >= (rank[b.verdict] ?? 2) ? a : b;
+  const avgConf = Math.round(((a.confidence ?? 50) + (b.confidence ?? 50)) / 2);
+  // If passes disagree strongly, tone down confidence
+  const disagree = a.verdict !== b.verdict;
+  const explanation =
+    disagree
+      ? `Two-pass analysis: pass 1 = ${a.verdict}, pass 2 = ${b.verdict}. ${worst.explanation}`
+      : `Two-pass agreement (${a.verdict}). ${worst.explanation}`;
+  return {
+    ...worst,
+    confidence: disagree ? Math.max(50, avgConf - 10) : Math.min(99, avgConf + 5),
+    explanation,
+  };
+}
+
 
 type AudioStats = {
   duration: number;
