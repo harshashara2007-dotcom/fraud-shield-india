@@ -328,7 +328,7 @@ function DeepfakePage() {
               <>
                 {fileType === "video" && videoFrames.length > 0 && (
                   <p className="text-center text-[11px] text-muted-foreground">
-                    ✓ Extracted {videoFrames.length} frames across {videoDuration.toFixed(1)}s — ready for deep temporal analysis
+                    ✓ Extracted {videoFrames.length} frames{audioStats?.hasAudio ? " + audio waveform" : ""} across {videoDuration.toFixed(1)}s — ready for 2-pass deep analysis
                   </p>
                 )}
                 <Button onClick={startAnalysis} className="h-12 w-full bg-[#7C3AED] text-base font-bold text-white hover:bg-[#6D28D9]">
