@@ -251,6 +251,7 @@ function AdminScreen() {
     { id: "users", label: "Users", icon: Users },
     { id: "keys", label: "API Keys", icon: Key },
     { id: "blacklist", label: "Blacklist", icon: Ban },
+    { id: "audit", label: "Audit", icon: ClipboardList },
   ];
 
   return (
