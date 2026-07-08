@@ -15,12 +15,17 @@ import {
   Bell,
   Trash2,
   ChevronRight,
+  Coins,
+  Zap,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/lib/theme";
 import { loadScanHistory } from "@/lib/scan-history";
+import { fetchCredits, CREDIT_PACKS } from "@/lib/credits";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -40,6 +45,9 @@ function ProfilePage() {
   const [joined, setJoined] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [scanCount, setScanCount] = useState(0);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [resetAt, setResetAt] = useState<string | null>(null);
+  const [showBuy, setShowBuy] = useState(false);
   const [notify, setNotify] = useState<boolean>(() => {
     if (typeof localStorage === "undefined") return true;
     return localStorage.getItem("scanscam-notify") !== "0";
