@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScanLine, CreditCard, Image as ImageIcon, Phone, Map as MapIcon, Megaphone, Bot, ShieldCheck, BarChart3, Heart, X, LogIn, Shield, User, Sun, Moon } from "lucide-react";
 
 
-const SUPPORT_UPI = "reenaashara22@oksbi";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
