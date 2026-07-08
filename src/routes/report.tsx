@@ -6,6 +6,7 @@ import { LocationCombobox } from "@/components/LocationCombobox";
 import { supabase } from "@/integrations/supabase/client";
 import { SCAM_TYPES } from "@/lib/format";
 import { INDIA_LOCATIONS, type IndiaLocation } from "@/lib/india-locations";
+import { INDIAN_BANKS } from "@/lib/banks";
 import { Check, ChevronRight, ExternalLink, CheckCircle2 } from "lucide-react";
 
 
@@ -20,6 +21,7 @@ function ReportScreen() {
   const [phone, setPhone] = useState("");
   const [upi, setUpi] = useState("");
   const [link, setLink] = useState("");
+  const [bank, setBank] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [city, setCity] = useState<IndiaLocation>(INDIA_LOCATIONS[0]);
@@ -57,13 +59,14 @@ function ReportScreen() {
         if (!error) screenshotPath = path;
       }
 
+      const desc = [bank ? `Bank: ${bank}` : null, description || null].filter(Boolean).join(" — ");
       await supabase.from("scam_reports").insert({
         type,
         phone: phone || null,
         upi_id: upi || null,
         link: link || null,
         amount_lost: amount ? Number(amount) : 0,
-        description: description || null,
+        description: desc || null,
         city: c.city,
         state: c.state,
         lat: c.lat + jitter(),
