@@ -6,7 +6,7 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { timeAgo, scamMeta } from "@/lib/format";
 import {
   Shield, Users, Megaphone, AlertTriangle, Trash2, LogOut, RefreshCw, Loader2,
-  Key, Ban, UserCheck, Download, Plus, ShieldCheck, ShieldOff,
+  Key, Ban, UserCheck, Download, Plus, ShieldCheck, ShieldOff, ClipboardList,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -63,7 +63,16 @@ type BlacklistRow = {
   last_reported: string | null;
 };
 
-type Tab = "overview" | "reports" | "users" | "keys" | "blacklist";
+type AuditRow = {
+  id: string;
+  admin_email: string | null;
+  action: string;
+  target: string | null;
+  meta: any;
+  created_at: string;
+};
+
+type Tab = "overview" | "reports" | "users" | "keys" | "blacklist" | "audit";
 
 function AdminScreen() {
   const navigate = useNavigate();
@@ -75,6 +84,7 @@ function AdminScreen() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [phones, setPhones] = useState<BlacklistRow[]>([]);
   const [upis, setUpis] = useState<BlacklistRow[]>([]);
+  const [audit, setAudit] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { checkAdmin(); }, []);
@@ -95,13 +105,14 @@ function AdminScreen() {
 
   async function refreshAll() {
     setLoading(true);
-    const [statsRes, reportsRes, keysRes, usersRes, phonesRes, upisRes] = await Promise.all([
+    const [statsRes, reportsRes, keysRes, usersRes, phonesRes, upisRes, auditRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.rpc("admin_list_reports", { _limit: 100 }),
       supabase.rpc("admin_list_api_keys", { _limit: 100 }),
       supabase.rpc("admin_list_users", { _limit: 200 }),
       supabase.from("phone_blacklist").select("*").order("last_reported", { ascending: false, nullsFirst: false }).limit(100),
       supabase.from("upi_blacklist").select("*").order("last_reported", { ascending: false, nullsFirst: false }).limit(100),
+      supabase.rpc("admin_list_audit", { _limit: 200 }),
     ]);
     if (statsRes.data && statsRes.data[0]) setStats(statsRes.data[0] as Stats);
     if (reportsRes.data) setReports(reportsRes.data as FullReport[]);
@@ -109,12 +120,13 @@ function AdminScreen() {
     if (usersRes.data) setUsers(usersRes.data as UserRow[]);
     if (phonesRes.data) setPhones(phonesRes.data.map((r: any) => ({ id: r.id, identifier: r.number, scam_type: r.scam_type, reports: r.reports, last_reported: r.last_reported })));
     if (upisRes.data) setUpis(upisRes.data.map((r: any) => ({ identifier: r.upi_id, scam_type: r.scam_type, reports: r.reports, last_reported: r.last_reported })));
+    if (auditRes.data) setAudit(auditRes.data as AuditRow[]);
     setLoading(false);
   }
 
   async function deleteReport(id: string) {
     if (!confirm("Delete this report permanently?")) return;
-    const { error } = await supabase.from("scam_reports").delete().eq("id", id);
+    const { error } = await supabase.rpc("admin_delete_report", { _id: id });
     if (error) return toast.error(error.message);
     setReports((r) => r.filter((x) => x.id !== id));
     toast.success("Report deleted");
@@ -239,6 +251,7 @@ function AdminScreen() {
     { id: "users", label: "Users", icon: Users },
     { id: "keys", label: "API Keys", icon: Key },
     { id: "blacklist", label: "Blacklist", icon: Ban },
+    { id: "audit", label: "Audit", icon: ClipboardList },
   ];
 
   return (
@@ -474,6 +487,31 @@ function AdminScreen() {
                 {upis.length === 0 && <Empty>Empty.</Empty>}
               </ul>
             </div>
+          </section>
+        )}
+
+        {tab === "audit" && (
+          <section>
+            <SectionHeader title={`Audit log (${audit.length})`} onExport={() => exportCsv(audit, "scanscam-audit.csv")} />
+            {audit.length === 0 ? <Empty>No admin actions recorded yet.</Empty> : (
+              <ul className="space-y-2">
+                {audit.map((a) => (
+                  <li key={a.id} className="rounded-xl border border-border bg-card p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-action/15 px-2 py-0.5 text-[11px] font-bold text-action">{a.action}</span>
+                      <span className="text-[11px] text-muted-foreground">{timeAgo(a.created_at)}</span>
+                    </div>
+                    <p className="mt-1 text-xs">
+                      <span className="font-semibold">{a.admin_email ?? "unknown"}</span>
+                      {a.target && <> → <span className="font-mono text-muted-foreground">{a.target}</span></>}
+                    </p>
+                    {a.meta && Object.keys(a.meta).length > 0 && (
+                      <pre className="mt-1 overflow-x-auto rounded bg-muted/30 p-2 text-[10px] text-muted-foreground">{JSON.stringify(a.meta)}</pre>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
       </div>
