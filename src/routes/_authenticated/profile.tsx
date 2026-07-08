@@ -148,6 +148,29 @@ function ProfilePage() {
           </div>
         </div>
 
+        {/* Credits */}
+        <section>
+          <h2 className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Credits</h2>
+          <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[#F59E0B]/15 via-card to-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#F59E0B]/20">
+                <Coins className="h-5 w-5 text-[#F59E0B]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-2xl font-black">{credits ?? "—"}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  100 free every month · 2 credits per scan
+                  {resetAt && <> · resets {new Date(resetAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</>}
+                </p>
+              </div>
+              <button onClick={() => setShowBuy(true)} className="flex items-center gap-1 rounded-xl bg-[#F59E0B] px-3 py-2 text-xs font-bold text-white active:scale-95">
+                <Zap className="h-3.5 w-3.5" /> Buy
+              </button>
+            </div>
+          </div>
+        </section>
+
+
         {/* Appearance */}
         <Section title="Appearance">
           <Row
