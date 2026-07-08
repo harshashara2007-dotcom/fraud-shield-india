@@ -6,7 +6,7 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { timeAgo, scamMeta } from "@/lib/format";
 import {
   Shield, Users, Megaphone, AlertTriangle, Trash2, LogOut, RefreshCw, Loader2,
-  Key, Ban, UserCheck, Download, Plus, ShieldCheck, ShieldOff,
+  Key, Ban, UserCheck, Download, Plus, ShieldCheck, ShieldOff, ClipboardList,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -63,7 +63,16 @@ type BlacklistRow = {
   last_reported: string | null;
 };
 
-type Tab = "overview" | "reports" | "users" | "keys" | "blacklist";
+type AuditRow = {
+  id: string;
+  admin_email: string | null;
+  action: string;
+  target: string | null;
+  meta: any;
+  created_at: string;
+};
+
+type Tab = "overview" | "reports" | "users" | "keys" | "blacklist" | "audit";
 
 function AdminScreen() {
   const navigate = useNavigate();
@@ -75,6 +84,7 @@ function AdminScreen() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [phones, setPhones] = useState<BlacklistRow[]>([]);
   const [upis, setUpis] = useState<BlacklistRow[]>([]);
+  const [audit, setAudit] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { checkAdmin(); }, []);
