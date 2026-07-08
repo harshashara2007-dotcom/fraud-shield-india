@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string | null
+          created_at: string
+          id: string
+          meta: Json | null
+          target: string | null
+        }
+        Insert: {
+          action: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          target?: string | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           activated_at: string | null
@@ -70,6 +100,33 @@ export type Database = {
           email?: string
           id?: string
           reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_transactions: {
+        Row: {
+          balance_after: number
+          created_at: string
+          delta: number
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string
+          delta: number
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string
           user_id?: string
         }
         Relationships: []
@@ -260,6 +317,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          monthly_reset_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          monthly_reset_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          monthly_reset_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -313,10 +394,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_credits: {
+        Args: { _amount: number; _reason: string }
+        Returns: number
+      }
       admin_ban_by_email: {
         Args: { _email: string; _reason?: string }
         Returns: undefined
       }
+      admin_delete_report: { Args: { _id: string }; Returns: undefined }
       admin_demote: { Args: { _user_id: string }; Returns: undefined }
       admin_list_api_keys: {
         Args: { _limit?: number }
@@ -328,6 +414,17 @@ export type Database = {
           id: string
           plan: string
           status: string
+        }[]
+      }
+      admin_list_audit: {
+        Args: { _limit?: number }
+        Returns: {
+          action: string
+          admin_email: string
+          created_at: string
+          id: string
+          meta: Json
+          target: string
         }[]
       }
       admin_list_reports: {
@@ -376,6 +473,13 @@ export type Database = {
           total_users: number
         }[]
       }
+      get_or_init_credits: {
+        Args: never
+        Returns: {
+          balance: number
+          monthly_reset_at: string
+        }[]
+      }
       get_reports_by_phone: {
         Args: { _limit?: number; _phone: string }
         Returns: {
@@ -405,6 +509,14 @@ export type Database = {
         Returns: undefined
       }
       is_banned: { Args: { _user_id: string }; Returns: boolean }
+      log_admin_action: {
+        Args: { _action: string; _meta?: Json; _target?: string }
+        Returns: undefined
+      }
+      use_credits: {
+        Args: { _amount: number; _reason: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "admin" | "user"
