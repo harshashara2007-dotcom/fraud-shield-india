@@ -166,6 +166,33 @@ function ReportScreen() {
               <Input label="Phone number" placeholder="98765 43210" value={phone} onChange={setPhone} />
               <Input label="UPI ID" placeholder="name@bank" value={upi} onChange={setUpi} />
               <Input label="Suspicious link" placeholder="https://…" value={link} onChange={setLink} />
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground">Bank involved</label>
+                <input
+                  list="banks-list"
+                  value={bank}
+                  onChange={(e) => setBank(e.target.value)}
+                  placeholder="Search or type your bank"
+                  className="mt-1 w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm focus:border-action focus:outline-none"
+                />
+                <datalist id="banks-list">
+                  {INDIAN_BANKS.map((b) => <option key={b} value={b} />)}
+                </datalist>
+                <div className="scrollbar-none mt-2 flex gap-1.5 overflow-x-auto pb-1">
+                  {INDIAN_BANKS.slice(0, 12).map((b) => (
+                    <button
+                      key={b}
+                      type="button"
+                      onClick={() => setBank(b)}
+                      className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${
+                        bank === b ? "border-action bg-action/15 text-action" : "border-border bg-card text-muted-foreground"
+                      }`}
+                    >
+                      {b.replace(/\s*\(.*\)/, "")}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <Input label="Amount lost (₹)" placeholder="0" value={amount} onChange={setAmount} type="number" />
               <div>
                 <label className="text-xs font-semibold text-muted-foreground">City or district</label>
