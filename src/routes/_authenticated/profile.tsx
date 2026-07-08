@@ -68,6 +68,8 @@ function ProfilePage() {
         .eq("role", "admin")
         .maybeSingle();
       setIsAdmin(!!role);
+      const c = await fetchCredits();
+      if (c) { setCredits(c.balance); setResetAt(c.monthly_reset_at); }
     });
   }, []);
 
