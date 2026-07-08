@@ -489,6 +489,31 @@ function AdminScreen() {
             </div>
           </section>
         )}
+
+        {tab === "audit" && (
+          <section>
+            <SectionHeader title={`Audit log (${audit.length})`} onExport={() => exportCsv(audit, "scanscam-audit.csv")} />
+            {audit.length === 0 ? <Empty>No admin actions recorded yet.</Empty> : (
+              <ul className="space-y-2">
+                {audit.map((a) => (
+                  <li key={a.id} className="rounded-xl border border-border bg-card p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-action/15 px-2 py-0.5 text-[11px] font-bold text-action">{a.action}</span>
+                      <span className="text-[11px] text-muted-foreground">{timeAgo(a.created_at)}</span>
+                    </div>
+                    <p className="mt-1 text-xs">
+                      <span className="font-semibold">{a.admin_email ?? "unknown"}</span>
+                      {a.target && <> → <span className="font-mono text-muted-foreground">{a.target}</span></>}
+                    </p>
+                    {a.meta && Object.keys(a.meta).length > 0 && (
+                      <pre className="mt-1 overflow-x-auto rounded bg-muted/30 p-2 text-[10px] text-muted-foreground">{JSON.stringify(a.meta)}</pre>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
       </div>
     </AppShell>
   );
