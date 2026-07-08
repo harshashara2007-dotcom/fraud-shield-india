@@ -105,13 +105,14 @@ function AdminScreen() {
 
   async function refreshAll() {
     setLoading(true);
-    const [statsRes, reportsRes, keysRes, usersRes, phonesRes, upisRes] = await Promise.all([
+    const [statsRes, reportsRes, keysRes, usersRes, phonesRes, upisRes, auditRes] = await Promise.all([
       supabase.rpc("get_admin_stats"),
       supabase.rpc("admin_list_reports", { _limit: 100 }),
       supabase.rpc("admin_list_api_keys", { _limit: 100 }),
       supabase.rpc("admin_list_users", { _limit: 200 }),
       supabase.from("phone_blacklist").select("*").order("last_reported", { ascending: false, nullsFirst: false }).limit(100),
       supabase.from("upi_blacklist").select("*").order("last_reported", { ascending: false, nullsFirst: false }).limit(100),
+      supabase.rpc("admin_list_audit", { _limit: 200 }),
     ]);
     if (statsRes.data && statsRes.data[0]) setStats(statsRes.data[0] as Stats);
     if (reportsRes.data) setReports(reportsRes.data as FullReport[]);
@@ -119,12 +120,13 @@ function AdminScreen() {
     if (usersRes.data) setUsers(usersRes.data as UserRow[]);
     if (phonesRes.data) setPhones(phonesRes.data.map((r: any) => ({ id: r.id, identifier: r.number, scam_type: r.scam_type, reports: r.reports, last_reported: r.last_reported })));
     if (upisRes.data) setUpis(upisRes.data.map((r: any) => ({ identifier: r.upi_id, scam_type: r.scam_type, reports: r.reports, last_reported: r.last_reported })));
+    if (auditRes.data) setAudit(auditRes.data as AuditRow[]);
     setLoading(false);
   }
 
   async function deleteReport(id: string) {
     if (!confirm("Delete this report permanently?")) return;
-    const { error } = await supabase.from("scam_reports").delete().eq("id", id);
+    const { error } = await supabase.rpc("admin_delete_report", { _id: id });
     if (error) return toast.error(error.message);
     setReports((r) => r.filter((x) => x.id !== id));
     toast.success("Report deleted");
