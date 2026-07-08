@@ -7,6 +7,7 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictHero, TrustScore } from "@/components/VerdictBadge";
 import { analyzeQr } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { chargeCredits, SCAN_COST } from "@/lib/credits";
 import { Camera, Image as ImageIcon, RotateCcw, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/scan")({
@@ -88,6 +89,8 @@ function ScanScreen() {
 
   async function runAnalysis(data: string) {
     setQrData(data);
+    const ok = await chargeCredits(SCAN_COST, "qr_scan");
+    if (!ok) return;
     setAnalyzing(true);
     try {
       const r = (await analyze({ data: { qrData: data } })) as Result;
