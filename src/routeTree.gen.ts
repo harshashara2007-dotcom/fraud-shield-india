@@ -9,112 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UpiRouteImport } from './routes/upi'
-import { Route as ScreenshotRouteImport } from './routes/screenshot'
-import { Route as ScanRouteImport } from './routes/scan'
-import { Route as SafetyRouteImport } from './routes/safety'
-import { Route as SafebotRouteImport } from './routes/safebot'
-import { Route as SafeNumbersRouteImport } from './routes/safe-numbers'
-import { Route as SafeCheckRouteImport } from './routes/safe-check'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ReportRouteImport } from './routes/report'
-import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
-import { Route as MapRouteImport } from './routes/map'
-import { Route as LandingRouteImport } from './routes/landing'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as DeepfakeRouteImport } from './routes/deepfake'
-import { Route as CallRouteImport } from './routes/call'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
-import { Route as AdminLoginRouteImport } from './routes/admin-login'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AdminLoginRouteImport } from './routes/admin-login'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CallRouteImport } from './routes/call'
+import { Route as DeepfakeRouteImport } from './routes/deepfake'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LandingRouteImport } from './routes/landing'
+import { Route as MapRouteImport } from './routes/map'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as ReportRouteImport } from './routes/report'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SafeCheckRouteImport } from './routes/safe-check'
+import { Route as SafeNumbersRouteImport } from './routes/safe-numbers'
+import { Route as SafebotRouteImport } from './routes/safebot'
+import { Route as SafetyRouteImport } from './routes/safety'
+import { Route as ScanRouteImport } from './routes/scan'
+import { Route as ScreenshotRouteImport } from './routes/screenshot'
+import { Route as UpiRouteImport } from './routes/upi'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 
-const UpiRoute = UpiRouteImport.update({
-  id: '/upi',
-  path: '/upi',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScreenshotRoute = ScreenshotRouteImport.update({
-  id: '/screenshot',
-  path: '/screenshot',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScanRoute = ScanRouteImport.update({
-  id: '/scan',
-  path: '/scan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SafetyRoute = SafetyRouteImport.update({
-  id: '/safety',
-  path: '/safety',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SafebotRoute = SafebotRouteImport.update({
-  id: '/safebot',
-  path: '/safebot',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SafeNumbersRoute = SafeNumbersRouteImport.update({
-  id: '/safe-numbers',
-  path: '/safe-numbers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SafeCheckRoute = SafeCheckRouteImport.update({
-  id: '/safe-check',
-  path: '/safe-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportRoute = ReportRouteImport.update({
-  id: '/report',
-  path: '/report',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
-  id: '/privacy-policy',
-  path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MapRoute = MapRouteImport.update({
-  id: '/map',
-  path: '/map',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LandingRoute = LandingRouteImport.update({
-  id: '/landing',
-  path: '/landing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DeepfakeRoute = DeepfakeRouteImport.update({
-  id: '/deepfake',
-  path: '/deepfake',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CallRoute = CallRouteImport.update({
-  id: '/call',
-  path: '/call',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
@@ -122,23 +46,99 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin-login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const CallRoute = CallRouteImport.update({
+  id: '/call',
+  path: '/call',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeepfakeRoute = DeepfakeRouteImport.update({
+  id: '/deepfake',
+  path: '/deepfake',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportRoute = ReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafeCheckRoute = SafeCheckRouteImport.update({
+  id: '/safe-check',
+  path: '/safe-check',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafeNumbersRoute = SafeNumbersRouteImport.update({
+  id: '/safe-numbers',
+  path: '/safe-numbers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafebotRoute = SafebotRouteImport.update({
+  id: '/safebot',
+  path: '/safebot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafetyRoute = SafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScreenshotRoute = ScreenshotRouteImport.update({
+  id: '/screenshot',
+  path: '/screenshot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpiRoute = UpiRouteImport.update({
+  id: '/upi',
+  path: '/upi',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -311,130 +311,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/upi': {
-      id: '/upi'
-      path: '/upi'
-      fullPath: '/upi'
-      preLoaderRoute: typeof UpiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/screenshot': {
-      id: '/screenshot'
-      path: '/screenshot'
-      fullPath: '/screenshot'
-      preLoaderRoute: typeof ScreenshotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scan': {
-      id: '/scan'
-      path: '/scan'
-      fullPath: '/scan'
-      preLoaderRoute: typeof ScanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/safety': {
-      id: '/safety'
-      path: '/safety'
-      fullPath: '/safety'
-      preLoaderRoute: typeof SafetyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/safebot': {
-      id: '/safebot'
-      path: '/safebot'
-      fullPath: '/safebot'
-      preLoaderRoute: typeof SafebotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/safe-numbers': {
-      id: '/safe-numbers'
-      path: '/safe-numbers'
-      fullPath: '/safe-numbers'
-      preLoaderRoute: typeof SafeNumbersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/safe-check': {
-      id: '/safe-check'
-      path: '/safe-check'
-      fullPath: '/safe-check'
-      preLoaderRoute: typeof SafeCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/report': {
-      id: '/report'
-      path: '/report'
-      fullPath: '/report'
-      preLoaderRoute: typeof ReportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy-policy': {
-      id: '/privacy-policy'
-      path: '/privacy-policy'
-      fullPath: '/privacy-policy'
-      preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/map': {
-      id: '/map'
-      path: '/map'
-      fullPath: '/map'
-      preLoaderRoute: typeof MapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/landing': {
-      id: '/landing'
-      path: '/landing'
-      fullPath: '/landing'
-      preLoaderRoute: typeof LandingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/deepfake': {
-      id: '/deepfake'
-      path: '/deepfake'
-      fullPath: '/deepfake'
-      preLoaderRoute: typeof DeepfakeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/call': {
-      id: '/call'
-      path: '/call'
-      fullPath: '/call'
-      preLoaderRoute: typeof CallRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin-login': {
-      id: '/admin-login'
-      path: '/admin-login'
-      fullPath: '/admin-login'
-      preLoaderRoute: typeof AdminLoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -444,25 +325,144 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin-login': {
+      id: '/admin-login'
+      path: '/admin-login'
+      fullPath: '/admin-login'
+      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/call': {
+      id: '/call'
+      path: '/call'
+      fullPath: '/call'
+      preLoaderRoute: typeof CallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deepfake': {
+      id: '/deepfake'
+      path: '/deepfake'
+      fullPath: '/deepfake'
+      preLoaderRoute: typeof DeepfakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report': {
+      id: '/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof ReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safe-check': {
+      id: '/safe-check'
+      path: '/safe-check'
+      fullPath: '/safe-check'
+      preLoaderRoute: typeof SafeCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safe-numbers': {
+      id: '/safe-numbers'
+      path: '/safe-numbers'
+      fullPath: '/safe-numbers'
+      preLoaderRoute: typeof SafeNumbersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safebot': {
+      id: '/safebot'
+      path: '/safebot'
+      fullPath: '/safebot'
+      preLoaderRoute: typeof SafebotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safety': {
+      id: '/safety'
+      path: '/safety'
+      fullPath: '/safety'
+      preLoaderRoute: typeof SafetyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/screenshot': {
+      id: '/screenshot'
+      path: '/screenshot'
+      fullPath: '/screenshot'
+      preLoaderRoute: typeof ScreenshotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upi': {
+      id: '/upi'
+      path: '/upi'
+      fullPath: '/upi'
+      preLoaderRoute: typeof UpiRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -506,3 +506,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
