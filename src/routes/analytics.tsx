@@ -76,7 +76,7 @@ function AnalyticsScreen() {
     const id = setInterval(load, 60000);
     const channel = supabase
       .channel("analytics-reports")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "scam_reports" }, (p) => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "scam_report_events" }, (p) => {
         const row = p.new as Report;
         setRecent((r) => [row, ...r].slice(0, 5));
         setReports((r) => [row, ...r]);
