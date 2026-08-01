@@ -90,6 +90,8 @@ function AdminScreen() {
   const [tab, setTab] = useState<Tab>("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [reports, setReports] = useState<FullReport[]>([]);
+  const [reportFilter, setReportFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
+
   const [apiKeys, setApiKeys] = useState<ApiKeyRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [phones, setPhones] = useState<BlacklistRow[]>([]);
