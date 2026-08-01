@@ -242,6 +242,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scam_report_events: {
+        Row: {
+          amount_lost: number | null
+          city: string | null
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          report_id: string | null
+          state: string | null
+          type: string
+        }
+        Insert: {
+          amount_lost?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          report_id?: string | null
+          state?: string | null
+          type: string
+        }
+        Update: {
+          amount_lost?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          report_id?: string | null
+          state?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       scam_reports: {
         Row: {
           amount_lost: number | null
