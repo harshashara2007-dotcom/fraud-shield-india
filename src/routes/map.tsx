@@ -77,7 +77,7 @@ function MapScreen() {
       .channel("live-fraud-map")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "scam_reports" },
+        { event: "INSERT", schema: "public", table: "scam_report_events" },
         (payload) => {
           const r = payload.new as Report;
           setReports((prev) => [r, ...prev]);

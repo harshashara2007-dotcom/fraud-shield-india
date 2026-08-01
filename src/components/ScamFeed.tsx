@@ -31,7 +31,7 @@ export function ScamFeed({ limit = 5 }: { limit?: number }) {
       .channel("feed-scams")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "scam_reports" },
+        { event: "INSERT", schema: "public", table: "scam_report_events" },
         (payload) =>
           setItems((prev) => [payload.new as Report, ...prev].slice(0, limit)),
       )

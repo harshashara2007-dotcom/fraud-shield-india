@@ -7,7 +7,6 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictHero, TrustScore } from "@/components/VerdictBadge";
 import { analyzeQr } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { chargeCredits, SCAN_COST } from "@/lib/credits";
 import { Camera, Image as ImageIcon, RotateCcw, Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/scan")({
@@ -89,8 +88,6 @@ function ScanScreen() {
 
   async function runAnalysis(data: string) {
     setQrData(data);
-    const ok = await chargeCredits(SCAN_COST, "qr_scan");
-    if (!ok) return;
     setAnalyzing(true);
     try {
       const r = (await analyze({ data: { qrData: data } })) as Result;
@@ -98,7 +95,10 @@ function ScanScreen() {
       if (r.verdict === "DANGER") navigator.vibrate?.([200, 100, 200, 100, 200]);
       else if (r.verdict === "SAFE") navigator.vibrate?.(80);
     } catch (e: any) {
-      toast.error(e?.message ?? "AI analysis failed");
+      const msg = String(e?.message ?? "");
+      if (msg.includes("insufficient_credits")) toast.error("Out of credits — top up from your profile");
+      else if (msg.includes("Unauthorized")) toast.error("Please sign in to run a scan");
+      else toast.error("AI analysis failed");
     } finally {
       setAnalyzing(false);
     }

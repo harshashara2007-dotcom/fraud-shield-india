@@ -1,10 +1,32 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createLovableAiGatewayProvider, stripJsonFences } from "./ai-gateway.server";
 
 const VISION_MODEL = "google/gemini-2.5-flash";
 const TEXT_MODEL = "google/gemini-2.5-flash";
+
+/** Cost, in credits, of a single AI-backed action. */
+const AI_COST = 2;
+
+/**
+ * Server-side credit enforcement. Runs as the signed-in user (RLS applies), so
+ * clients cannot skip it by calling the endpoint directly.
+ */
+async function chargeServerCredits(supabase: unknown, reason: string) {
+  const client = supabase as {
+    rpc: (fn: "use_credits", args: { _amount: number; _reason: string }) => Promise<{ error: { message: string } | null }>;
+  };
+  const { error } = await client.rpc("use_credits", { _amount: AI_COST, _reason: reason });
+
+  if (error) {
+    if (String(error.message).includes("insufficient_credits")) {
+      throw new Error("insufficient_credits");
+    }
+    throw new Error("Could not verify credits");
+  }
+}
 
 function gateway() {
   const key = process.env.LOVABLE_API_KEY;
@@ -28,10 +50,13 @@ async function callJson(prompt: string, system: string) {
 
 const SYS = "You are ScanScam, India's #1 fraud detection AI. Always respond with ONLY a valid JSON object — no prose, no markdown fences. Be specific to Indian financial scams.";
 
+
 // 1. QR analysis
 export const analyzeQr = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ qrData: z.string().min(1).max(2000) }).parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await chargeServerCredits(context.supabase, "qr_scan");
     const out = await callJson(
       `Analyze this QR code content for fraud risk: "${data.qrData}".\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","url":"...","domainAge":"...","ssl":"valid|invalid|unknown","blacklisted":"Yes (n reports)|No","upiName":"if UPI QR else empty","trustScore":1-10,"reason":"one sentence"}`,
       SYS,
@@ -41,8 +66,10 @@ export const analyzeQr = createServerFn({ method: "POST" })
 
 // 2. UPI analysis
 export const analyzeUpi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ upiId: z.string().min(3).max(120) }).parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await chargeServerCredits(context.supabase, "upi_check");
     return callJson(
       `Analyze this Indian UPI ID: "${data.upiId}". Check format validity, infer bank from suffix (@ybl=PhonePe, @paytm=Paytm, @oksbi=SBI, @okhdfcbank=HDFC, @okicici=ICICI, @okaxis=Axis, @upi=NPCI). Estimate scam risk based on patterns like 'refund', 'lottery', 'kyc', 'support' in handle.\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","name":"likely account name","bank":"...","city":"if guessable else Unknown","trustScore":1-10,"firstSeen":"approx duration","reason":"one sentence"}`,
       SYS,
@@ -51,8 +78,10 @@ export const analyzeUpi = createServerFn({ method: "POST" })
 
 // 3. Phone analysis
 export const analyzeCall = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ phone: z.string().min(6).max(20) }).parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await chargeServerCredits(context.supabase, "call_check");
     return callJson(
       `Analyze this Indian phone number: "${data.phone}". Infer operator from prefix (Jio 6/7/8/9-series, Airtel, Vi, BSNL) and likely state/circle. Flag spam patterns (sequential digits, repeating, known fraud series).\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","type":"category","operator":"Airtel|Jio|Vi|BSNL|Unknown","location":"city, state","aiVoice":true|false,"trustScore":1-10,"warning":"one sentence"}`,
       SYS,
@@ -61,10 +90,12 @@ export const analyzeCall = createServerFn({ method: "POST" })
 
 // 4. Screenshot vision analysis
 export const analyzeScreenshot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z.object({ imageDataUrl: z.string().startsWith("data:image/").max(8_000_000) }).parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await chargeServerCredits(context.supabase, "screenshot_scan");
     const g = gateway();
     const { text } = await generateText({
       model: g(VISION_MODEL),
@@ -100,8 +131,10 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
 // 5. SafeBot chat
 const ChatMessage = z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(4000) });
 export const safebotChat = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ messages: z.array(ChatMessage).max(40) }).parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await chargeServerCredits(context.supabase, "safebot_chat");
     const g = gateway();
     const { text } = await generateText({
       model: g(TEXT_MODEL),
@@ -114,6 +147,7 @@ export const safebotChat = createServerFn({ method: "POST" })
 
 // 6. Deepfake detection (vision) — accepts one image OR multiple video frames + optional audio stats
 export const analyzeDeepfake = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -137,7 +171,8 @@ export const analyzeDeepfake = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await chargeServerCredits(context.supabase, "deepfake_scan");
     const g = gateway();
     const frames = data.frames && data.frames.length > 0 ? data.frames : [data.imageDataUrl!];
     const isVideo = data.mediaKind === "video";
