@@ -281,53 +281,100 @@ export type Database = {
       scam_reports: {
         Row: {
           amount_lost: number | null
+          bank: string | null
           city: string | null
           created_at: string | null
+          dedupe_key: string | null
           description: string | null
+          duplicate_of: string | null
+          fingerprint_hash: string | null
+          flagged: boolean
           id: string
+          ip_hash: string | null
           lat: number | null
           link: string | null
           lng: number | null
           phone: string | null
+          report_count: number
+          reporter_contact: string | null
+          reporter_id: string | null
+          review_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           screenshot_url: string | null
           state: string | null
+          status: string
           type: string
           upi_id: string | null
           votes: number | null
         }
         Insert: {
           amount_lost?: number | null
+          bank?: string | null
           city?: string | null
           created_at?: string | null
+          dedupe_key?: string | null
           description?: string | null
+          duplicate_of?: string | null
+          fingerprint_hash?: string | null
+          flagged?: boolean
           id?: string
+          ip_hash?: string | null
           lat?: number | null
           link?: string | null
           lng?: number | null
           phone?: string | null
+          report_count?: number
+          reporter_contact?: string | null
+          reporter_id?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           screenshot_url?: string | null
           state?: string | null
+          status?: string
           type: string
           upi_id?: string | null
           votes?: number | null
         }
         Update: {
           amount_lost?: number | null
+          bank?: string | null
           city?: string | null
           created_at?: string | null
+          dedupe_key?: string | null
           description?: string | null
+          duplicate_of?: string | null
+          fingerprint_hash?: string | null
+          flagged?: boolean
           id?: string
+          ip_hash?: string | null
           lat?: number | null
           link?: string | null
           lng?: number | null
           phone?: string | null
+          report_count?: number
+          reporter_contact?: string | null
+          reporter_id?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           screenshot_url?: string | null
           state?: string | null
+          status?: string
           type?: string
           upi_id?: string | null
           votes?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scam_reports_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "scam_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       upi_blacklist: {
         Row: {
@@ -464,16 +511,22 @@ export type Database = {
         }[]
       }
       admin_list_reports: {
-        Args: { _limit?: number }
+        Args: { _limit?: number; _status?: string }
         Returns: {
           amount_lost: number
+          bank: string
           city: string
           created_at: string
           description: string
+          flagged: boolean
           id: string
           link: string
           phone: string
+          report_count: number
+          reporter_contact: string
+          review_reason: string
           state: string
+          status: string
           type: string
           upi_id: string
         }[]
@@ -489,6 +542,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_moderate_report: {
+        Args: { _id: string; _note?: string; _status: string }
+        Returns: undefined
+      }
       admin_promote_by_email: {
         Args: { _email: string }
         Returns: {
@@ -501,6 +558,9 @@ export type Database = {
       get_admin_stats: {
         Args: never
         Returns: {
+          approved_reports: number
+          flagged_reports: number
+          pending_reports: number
           reports_24h: number
           total_deepfakes: number
           total_phone_blacklist: number
@@ -548,6 +608,31 @@ export type Database = {
       log_admin_action: {
         Args: { _action: string; _meta?: Json; _target?: string }
         Returns: undefined
+      }
+      submit_scam_report: {
+        Args: {
+          _amount_lost?: number
+          _bank?: string
+          _city: string
+          _description: string
+          _fingerprint_hash?: string
+          _ip_hash?: string
+          _lat: number
+          _link?: string
+          _lng: number
+          _phone?: string
+          _screenshot_url?: string
+          _state: string
+          _type: string
+          _upi_id?: string
+        }
+        Returns: {
+          duplicate: boolean
+          flagged: boolean
+          id: string
+          report_count: number
+          status: string
+        }[]
       }
       use_credits: {
         Args: { _amount: number; _reason: string }
