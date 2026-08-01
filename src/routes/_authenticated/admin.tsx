@@ -21,6 +21,9 @@ type Stats = {
   total_upi_blacklist: number;
   total_users: number;
   reports_24h: number;
+  pending_reports: number;
+  flagged_reports: number;
+  approved_reports: number;
 };
 
 type FullReport = {
@@ -29,12 +32,19 @@ type FullReport = {
   phone: string | null;
   upi_id: string | null;
   link: string | null;
+  bank: string | null;
   city: string | null;
   state: string | null;
   description: string | null;
   amount_lost: number | null;
+  status: string;
+  flagged: boolean;
+  report_count: number;
+  review_reason: string | null;
+  reporter_contact: string | null;
   created_at: string;
 };
+
 
 type ApiKeyRow = {
   id: string;
@@ -80,6 +90,8 @@ function AdminScreen() {
   const [tab, setTab] = useState<Tab>("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [reports, setReports] = useState<FullReport[]>([]);
+  const [reportFilter, setReportFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
+
   const [apiKeys, setApiKeys] = useState<ApiKeyRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [phones, setPhones] = useState<BlacklistRow[]>([]);
@@ -131,6 +143,33 @@ function AdminScreen() {
     setReports((r) => r.filter((x) => x.id !== id));
     toast.success("Report deleted");
   }
+
+  async function moderateReport(id: string, status: "approved" | "rejected") {
+    const note =
+      status === "rejected" ? (prompt("Reason for rejection (optional)") ?? undefined) : undefined;
+    const { error } = await supabase.rpc("admin_moderate_report", {
+      _id: id,
+      _status: status,
+      _note: note,
+    });
+    if (error) return toast.error(error.message);
+    setReports((r) =>
+      r.map((x) =>
+        x.id === id ? { ...x, status, flagged: status === "approved" ? false : x.flagged } : x,
+      ),
+    );
+    setStats((s) =>
+      s
+        ? {
+            ...s,
+            pending_reports: Math.max(0, s.pending_reports - 1),
+            approved_reports: status === "approved" ? s.approved_reports + 1 : s.approved_reports,
+          }
+        : s,
+    );
+    toast.success(status === "approved" ? "Report approved and published" : "Report rejected");
+  }
+
 
   async function updateKey(id: string, status: "active" | "revoked") {
     const patch: any = { status };
@@ -292,13 +331,16 @@ function AdminScreen() {
         {tab === "overview" && (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <StatCard label="Total Reports" value={stats?.total_reports ?? 0} icon={Megaphone} color="#FF2D55" />
+              <StatCard label="Pending review" value={stats?.pending_reports ?? 0} icon={Megaphone} color="#FF9500" />
+              <StatCard label="Flagged" value={stats?.flagged_reports ?? 0} icon={AlertTriangle} color="#FF2D55" />
+              <StatCard label="Approved Reports" value={stats?.approved_reports ?? 0} icon={ShieldCheck} color="#00C853" />
               <StatCard label="Last 24h" value={stats?.reports_24h ?? 0} icon={AlertTriangle} color="#FF9500" />
               <StatCard label="Users" value={stats?.total_users ?? 0} icon={Users} color="#007AFF" />
               <StatCard label="Deepfakes" value={stats?.total_deepfakes ?? 0} icon={Shield} color="#7C3AED" />
               <StatCard label="Phone blacklist" value={stats?.total_phone_blacklist ?? 0} icon={AlertTriangle} color="#00C853" />
               <StatCard label="UPI blacklist" value={stats?.total_upi_blacklist ?? 0} icon={AlertTriangle} color="#EC4899" />
             </div>
+
 
             <section className="rounded-2xl border border-border bg-card p-4">
               <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">Quick actions</h3>
@@ -320,12 +362,27 @@ function AdminScreen() {
           </>
         )}
 
-        {tab === "reports" && (
+        {tab === "reports" && (() => {
+          const shown = reports.filter((r) => reportFilter === "all" || r.status === reportFilter);
+          return (
           <section>
-            <SectionHeader title={`Recent reports (${reports.length})`} onExport={() => exportCsv(reports, "scanscam-reports.csv")} />
-            {reports.length === 0 ? <Empty>No reports yet.</Empty> : (
+            <SectionHeader title={`Moderation queue (${shown.length})`} onExport={() => exportCsv(shown, "scanscam-reports.csv")} />
+            <div className="mb-3 flex gap-1.5 overflow-x-auto">
+              {(["pending", "approved", "rejected", "all"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setReportFilter(f)}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold capitalize ${
+                    reportFilter === f ? "border-action bg-action/15 text-action" : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  {f} ({f === "all" ? reports.length : reports.filter((r) => r.status === f).length})
+                </button>
+              ))}
+            </div>
+            {shown.length === 0 ? <Empty>Nothing here.</Empty> : (
               <ul className="space-y-2">
-                {reports.map((r) => {
+                {shown.map((r) => {
                   const m = scamMeta(r.type);
                   return (
                     <li key={r.id} className="rounded-xl border border-border bg-card p-3">
@@ -334,15 +391,34 @@ function AdminScreen() {
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-bold text-danger">{m.label}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold uppercase ${
+                              r.status === "approved" ? "bg-safe/15 text-safe" : r.status === "rejected" ? "bg-muted text-muted-foreground" : "bg-warning/15 text-warning"
+                            }`}>{r.status}</span>
+                            {r.flagged && <span className="rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-bold text-danger">⚑ flagged</span>}
+                            {r.report_count > 1 && <span className="rounded-full bg-action/15 px-2 py-0.5 text-[11px] font-bold text-action">×{r.report_count} reports</span>}
                             {r.city && <span className="text-[11px] text-muted-foreground">📍 {r.city}{r.state ? `, ${r.state}` : ""}</span>}
                             <span className="text-[11px] text-muted-foreground">{timeAgo(r.created_at)}</span>
                           </div>
                           {r.description && <p className="mt-1 text-sm">{r.description}</p>}
+                          {r.review_reason && <p className="mt-1 text-[11px] text-warning">Note: {r.review_reason}</p>}
                           <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
                             {r.phone && <span className="rounded bg-muted/40 px-2 py-0.5 font-mono">📞 {r.phone}</span>}
                             {r.upi_id && <span className="rounded bg-muted/40 px-2 py-0.5 font-mono">💸 {r.upi_id}</span>}
+                            {r.bank && <span className="rounded bg-muted/40 px-2 py-0.5">🏦 {r.bank}</span>}
+                            {r.link && <span className="max-w-full truncate rounded bg-muted/40 px-2 py-0.5 font-mono">🔗 {r.link}</span>}
+                            {r.reporter_contact && <span className="rounded bg-muted/40 px-2 py-0.5">👤 {r.reporter_contact}</span>}
                             {!!r.amount_lost && <span className="rounded bg-danger/15 px-2 py-0.5 font-bold text-danger">₹{r.amount_lost.toLocaleString("en-IN")} lost</span>}
                           </div>
+                          {r.status !== "approved" && (
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              <button onClick={() => moderateReport(r.id, "approved")} className="rounded-lg bg-safe py-2 text-[11px] font-bold text-white active:scale-95">
+                                Approve & publish
+                              </button>
+                              <button onClick={() => moderateReport(r.id, "rejected")} className="rounded-lg border border-border py-2 text-[11px] font-bold text-muted-foreground active:scale-95">
+                                Reject
+                              </button>
+                            </div>
+                          )}
                         </div>
                         <button onClick={() => deleteReport(r.id)} className="rounded-lg p-2 text-muted-foreground hover:bg-danger/15 hover:text-danger" aria-label="Delete">
                           <Trash2 className="h-4 w-4" />
@@ -354,7 +430,10 @@ function AdminScreen() {
               </ul>
             )}
           </section>
-        )}
+          );
+        })()}
+
+
 
         {tab === "users" && (
           <section>
