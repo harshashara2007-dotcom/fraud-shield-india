@@ -142,6 +142,33 @@ function AdminScreen() {
     toast.success("Report deleted");
   }
 
+  async function moderateReport(id: string, status: "approved" | "rejected") {
+    const note =
+      status === "rejected" ? (prompt("Reason for rejection (optional)") ?? undefined) : undefined;
+    const { error } = await supabase.rpc("admin_moderate_report", {
+      _id: id,
+      _status: status,
+      _note: note,
+    });
+    if (error) return toast.error(error.message);
+    setReports((r) =>
+      r.map((x) =>
+        x.id === id ? { ...x, status, flagged: status === "approved" ? false : x.flagged } : x,
+      ),
+    );
+    setStats((s) =>
+      s
+        ? {
+            ...s,
+            pending_reports: Math.max(0, s.pending_reports - 1),
+            approved_reports: status === "approved" ? s.approved_reports + 1 : s.approved_reports,
+          }
+        : s,
+    );
+    toast.success(status === "approved" ? "Report approved and published" : "Report rejected");
+  }
+
+
   async function updateKey(id: string, status: "active" | "revoked") {
     const patch: any = { status };
     if (status === "active") patch.activated_at = new Date().toISOString();
