@@ -21,6 +21,9 @@ type Stats = {
   total_upi_blacklist: number;
   total_users: number;
   reports_24h: number;
+  pending_reports: number;
+  flagged_reports: number;
+  approved_reports: number;
 };
 
 type FullReport = {
@@ -29,12 +32,19 @@ type FullReport = {
   phone: string | null;
   upi_id: string | null;
   link: string | null;
+  bank: string | null;
   city: string | null;
   state: string | null;
   description: string | null;
   amount_lost: number | null;
+  status: string;
+  flagged: boolean;
+  report_count: number;
+  review_reason: string | null;
+  reporter_contact: string | null;
   created_at: string;
 };
+
 
 type ApiKeyRow = {
   id: string;
