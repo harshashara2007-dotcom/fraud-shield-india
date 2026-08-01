@@ -433,7 +433,7 @@ function AdminScreen() {
           );
         })()}
 
-        )}
+
 
         {tab === "users" && (
           <section>
