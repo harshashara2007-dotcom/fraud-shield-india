@@ -14,11 +14,12 @@ const AI_COST = 2;
  * Server-side credit enforcement. Runs as the signed-in user (RLS applies), so
  * clients cannot skip it by calling the endpoint directly.
  */
-async function chargeServerCredits(
-  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }> },
-  reason: string,
-) {
-  const { error } = await supabase.rpc("use_credits", { _amount: AI_COST, _reason: reason });
+async function chargeServerCredits(supabase: unknown, reason: string) {
+  const client = supabase as {
+    rpc: (fn: "use_credits", args: { _amount: number; _reason: string }) => Promise<{ error: { message: string } | null }>;
+  };
+  const { error } = await client.rpc("use_credits", { _amount: AI_COST, _reason: reason });
+
   if (error) {
     if (String(error.message).includes("insufficient_credits")) {
       throw new Error("insufficient_credits");
