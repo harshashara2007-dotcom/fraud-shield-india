@@ -1,10 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createLovableAiGatewayProvider, stripJsonFences } from "./ai-gateway.server";
 
 const VISION_MODEL = "google/gemini-2.5-flash";
 const TEXT_MODEL = "google/gemini-2.5-flash";
+
+/** Cost, in credits, of a single AI-backed action. */
+const AI_COST = 2;
+
+/**
+ * Server-side credit enforcement. Runs as the signed-in user (RLS applies), so
+ * clients cannot skip it by calling the endpoint directly.
+ */
+async function chargeServerCredits(
+  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }> },
+  reason: string,
+) {
+  const { error } = await supabase.rpc("use_credits", { _amount: AI_COST, _reason: reason });
+  if (error) {
+    if (String(error.message).includes("insufficient_credits")) {
+      throw new Error("insufficient_credits");
+    }
+    throw new Error("Could not verify credits");
+  }
+}
 
 function gateway() {
   const key = process.env.LOVABLE_API_KEY;
@@ -27,6 +48,7 @@ async function callJson(prompt: string, system: string) {
 }
 
 const SYS = "You are ScanScam, India's #1 fraud detection AI. Always respond with ONLY a valid JSON object — no prose, no markdown fences. Be specific to Indian financial scams.";
+
 
 // 1. QR analysis
 export const analyzeQr = createServerFn({ method: "POST" })
