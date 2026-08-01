@@ -331,13 +331,16 @@ function AdminScreen() {
         {tab === "overview" && (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <StatCard label="Total Reports" value={stats?.total_reports ?? 0} icon={Megaphone} color="#FF2D55" />
+              <StatCard label="Pending review" value={stats?.pending_reports ?? 0} icon={Megaphone} color="#FF9500" />
+              <StatCard label="Flagged" value={stats?.flagged_reports ?? 0} icon={AlertTriangle} color="#FF2D55" />
+              <StatCard label="Approved Reports" value={stats?.approved_reports ?? 0} icon={ShieldCheck} color="#00C853" />
               <StatCard label="Last 24h" value={stats?.reports_24h ?? 0} icon={AlertTriangle} color="#FF9500" />
               <StatCard label="Users" value={stats?.total_users ?? 0} icon={Users} color="#007AFF" />
               <StatCard label="Deepfakes" value={stats?.total_deepfakes ?? 0} icon={Shield} color="#7C3AED" />
               <StatCard label="Phone blacklist" value={stats?.total_phone_blacklist ?? 0} icon={AlertTriangle} color="#00C853" />
               <StatCard label="UPI blacklist" value={stats?.total_upi_blacklist ?? 0} icon={AlertTriangle} color="#EC4899" />
             </div>
+
 
             <section className="rounded-2xl border border-border bg-card p-4">
               <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">Quick actions</h3>
