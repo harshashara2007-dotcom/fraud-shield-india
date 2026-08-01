@@ -44,14 +44,14 @@ export const submitReport = createServerFn({ method: "POST" })
       _state: data.state,
       _lat: data.lat,
       _lng: data.lng,
-      _link: data.link || null,
-      _bank: data.bank || null,
-      _phone: data.phone || null,
-      _upi_id: data.upi_id || null,
+      _link: data.link || undefined,
+      _bank: data.bank || undefined,
+      _phone: data.phone || undefined,
+      _upi_id: data.upi_id || undefined,
       _amount_lost: data.amount_lost,
-      _screenshot_url: data.screenshot_url || null,
-      _fingerprint_hash: data.fingerprint ? hash(data.fingerprint) : null,
-      _ip_hash: ip ? hash(ip) : null,
+      _screenshot_url: data.screenshot_url || undefined,
+      _fingerprint_hash: data.fingerprint ? hash(data.fingerprint) : undefined,
+      _ip_hash: ip ? hash(ip) : undefined,
     });
 
     if (error) throw new Error(error.message.replace(/^.*\b(auth_required|verification_required|account_blocked|rate_limited|description_too_short|link_or_bank_required|invalid_link|invalid_amount|amount_too_large)\b.*$/, "$1"));
