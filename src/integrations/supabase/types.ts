@@ -609,6 +609,18 @@ export type Database = {
         Args: { _action: string; _meta?: Json; _target?: string }
         Returns: undefined
       }
+      my_api_keys: {
+        Args: never
+        Returns: {
+          activated_at: string
+          api_key: string
+          created_at: string
+          id: string
+          plan: string
+          status: string
+        }[]
+      }
+      request_api_key: { Args: { _plan: string }; Returns: string }
       submit_scam_report: {
         Args: {
           _amount_lost?: number
