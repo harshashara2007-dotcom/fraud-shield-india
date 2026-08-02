@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { safebotChat } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { Send, Mic, Share2, Bot, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/safebot")({
@@ -54,8 +56,10 @@ function SafeBotScreen() {
     try {
       const { reply } = (await send({ data: { messages: next.slice(-20) } })) as { reply: string };
       setMessages([...next, { role: "assistant", content: reply }]);
-    } catch (e: any) {
-      toast.error(e?.message ?? "SafeBot is offline");
+    } catch (e) {
+      console.error("[safebot] chat failed:", e);
+      toast.error(aiErrorMessage(e));
+
       setMessages([...next, { role: "assistant", content: "Sorry, I had a hiccup. Try again? 🛡️" }]);
     } finally {
       setLoading(false);

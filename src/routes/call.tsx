@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { analyzeCall } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Phone, Search, Loader2, Megaphone, Ban, Share2, CheckCircle2, ShieldAlert } from "lucide-react";
 import { addScanHistory } from "@/lib/scan-history";
@@ -149,8 +151,10 @@ function CallScreen() {
           : "SAFE";
       addScanHistory({ kind: "Call", verdict, label: `+91 ${n}` });
       if (verdict === "DANGER") navigator.vibrate?.([200, 100, 200]);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Could not check number");
+    } catch (e) {
+      console.error("[call] number check failed:", e);
+      toast.error(aiErrorMessage(e));
+
     } finally {
       setLoading(false);
     }

@@ -4,6 +4,8 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { analyzeDeepfake } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Video, ImageIcon, RefreshCw, Megaphone, Share2, AlertTriangle, ShieldCheck } from "lucide-react";
 
@@ -281,15 +283,10 @@ function DeepfakePage() {
       setResult(res as DeepfakeResult);
       setScanProgress(100);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Analysis failed";
-      if (/unauthor|no authorization header|invalid token/i.test(msg)) {
-        setError("Please log in to use this feature.");
-      } else if (msg.includes("insufficient_credits")) {
-        setError("Out of credits — top up from your profile.");
-      } else {
-        setError("Analysis failed. Please try again.");
-      }
+      console.error("[deepfake] analysis failed:", e);
+      setError(aiErrorMessage(e));
     } finally {
+
 
       clearInterval(stepTimer);
       clearInterval(progTimer);

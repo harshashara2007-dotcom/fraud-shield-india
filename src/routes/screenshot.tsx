@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictHero, TrustScore } from "@/components/VerdictBadge";
 import { analyzeScreenshot } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Share2, RotateCcw, Loader2 } from "lucide-react";
 
@@ -45,8 +47,10 @@ function ScreenshotScreen() {
       const r = (await analyze({ data: { imageDataUrl: imageData } })) as Result;
       setResult(r);
       if (r.verdict === "SCAM") navigator.vibrate?.([200, 100, 200, 100, 200]);
-    } catch (e: any) {
-      toast.error(e?.message ?? "AI analysis failed");
+    } catch (e) {
+      console.error("[screenshot] analysis failed:", e);
+      toast.error(aiErrorMessage(e));
+
     } finally {
       setLoading(false);
     }

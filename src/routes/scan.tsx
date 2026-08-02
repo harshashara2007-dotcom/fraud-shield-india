@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictHero, TrustScore } from "@/components/VerdictBadge";
 import { analyzeQr } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Camera, Image as ImageIcon, RotateCcw, Megaphone } from "lucide-react";
 
@@ -121,12 +123,12 @@ function ScanScreen() {
       setResult(r);
       if (r.verdict === "DANGER") navigator.vibrate?.([200, 100, 200, 100, 200]);
       else if (r.verdict === "SAFE") navigator.vibrate?.(80);
-    } catch (e: any) {
-      const msg = String(e?.message ?? "");
-      if (msg.includes("insufficient_credits")) toast.error("Out of credits — top up from your profile");
-      else if (msg.includes("Unauthorized")) toast.error("Please sign in to run a scan");
-      else toast.error("AI analysis failed");
+    } catch (e) {
+      // Log the raw error for diagnosis; show the user a specific message.
+      console.error("[scan] QR analysis failed:", e);
+      toast.error(aiErrorMessage(e));
     } finally {
+
       setAnalyzing(false);
     }
   }

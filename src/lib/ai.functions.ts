@@ -13,6 +13,9 @@ const AI_COST = 2;
 /**
  * Server-side credit enforcement. Runs as the signed-in user (RLS applies), so
  * clients cannot skip it by calling the endpoint directly.
+ *
+ * Throws stable codes consumed by `@/lib/ai-errors`:
+ * `insufficient_credits` | `credits_unavailable`.
  */
 async function chargeServerCredits(supabase: unknown, reason: string) {
   const client = supabase as {
@@ -24,19 +27,41 @@ async function chargeServerCredits(supabase: unknown, reason: string) {
     if (String(error.message).includes("insufficient_credits")) {
       throw new Error("insufficient_credits");
     }
-    throw new Error("Could not verify credits");
+    // Log the real database error so it shows up in backend logs.
+    console.error(`[ai:${reason}] credit charge failed:`, error.message);
+    throw new Error("credits_unavailable");
   }
 }
 
 function gateway() {
   const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
+  if (!key) {
+    console.error("[ai] LOVABLE_API_KEY is not configured on the server");
+    throw new Error("ai_config_missing");
+  }
   return createLovableAiGatewayProvider(key);
 }
 
-async function callJson(prompt: string, system: string) {
+/** Calls the model and logs any provider failure before throwing `ai_unavailable`. */
+async function generateWithLogging(
+  reason: string,
+  args: Parameters<typeof generateText>[0],
+): Promise<string> {
+  try {
+    const { text } = await generateText(args);
+    return text;
+  } catch (err) {
+    console.error(
+      `[ai:${reason}] model call failed:`,
+      err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+    );
+    throw new Error("ai_unavailable");
+  }
+}
+
+async function callJson(prompt: string, system: string, reason: string) {
   const g = gateway();
-  const { text } = await generateText({
+  const text = await generateWithLogging(reason, {
     model: g(TEXT_MODEL),
     system,
     prompt,
@@ -44,9 +69,11 @@ async function callJson(prompt: string, system: string) {
   try {
     return JSON.parse(stripJsonFences(text));
   } catch {
+    console.warn(`[ai:${reason}] model returned non-JSON output, falling back`);
     return { verdict: "SUSPICIOUS", reason: text.slice(0, 240), trustScore: 5 };
   }
 }
+
 
 const SYS = "You are ScanScam, India's #1 fraud detection AI. Always respond with ONLY a valid JSON object — no prose, no markdown fences. Be specific to Indian financial scams.";
 
@@ -60,6 +87,8 @@ export const analyzeQr = createServerFn({ method: "POST" })
     const out = await callJson(
       `Analyze this QR code content for fraud risk: "${data.qrData}".\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","url":"...","domainAge":"...","ssl":"valid|invalid|unknown","blacklisted":"Yes (n reports)|No","upiName":"if UPI QR else empty","trustScore":1-10,"reason":"one sentence"}`,
       SYS,
+      "qr_scan",
+
     );
     return out;
   });
@@ -73,6 +102,8 @@ export const analyzeUpi = createServerFn({ method: "POST" })
     return callJson(
       `Analyze this Indian UPI ID: "${data.upiId}". Check format validity, infer bank from suffix (@ybl=PhonePe, @paytm=Paytm, @oksbi=SBI, @okhdfcbank=HDFC, @okicici=ICICI, @okaxis=Axis, @upi=NPCI). Estimate scam risk based on patterns like 'refund', 'lottery', 'kyc', 'support' in handle.\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","name":"likely account name","bank":"...","city":"if guessable else Unknown","trustScore":1-10,"firstSeen":"approx duration","reason":"one sentence"}`,
       SYS,
+      "upi_check",
+
     );
   });
 
@@ -85,6 +116,8 @@ export const analyzeCall = createServerFn({ method: "POST" })
     return callJson(
       `Analyze this Indian phone number: "${data.phone}". Infer operator from prefix (Jio 6/7/8/9-series, Airtel, Vi, BSNL) and likely state/circle. Flag spam patterns (sequential digits, repeating, known fraud series).\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","type":"category","operator":"Airtel|Jio|Vi|BSNL|Unknown","location":"city, state","aiVoice":true|false,"trustScore":1-10,"warning":"one sentence"}`,
       SYS,
+      "call_check",
+
     );
   });
 
@@ -97,7 +130,7 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await chargeServerCredits(context.supabase, "screenshot_scan");
     const g = gateway();
-    const { text } = await generateText({
+    const text = await generateWithLogging("screenshot_scan", {
       model: g(VISION_MODEL),
       system: SYS,
       messages: [
@@ -113,6 +146,7 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
         },
       ],
     });
+
     try {
       return JSON.parse(stripJsonFences(text));
     } catch {
@@ -136,12 +170,13 @@ export const safebotChat = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await chargeServerCredits(context.supabase, "safebot_chat");
     const g = gateway();
-    const { text } = await generateText({
+    const text = await generateWithLogging("safebot_chat", {
       model: g(TEXT_MODEL),
       system:
         "You are SafeBot 🛡️, India's most trusted cybersecurity assistant. When analyzing a message, number or situation: clearly identify if it is SAFE (use ✅) or DANGER (use 🚨), explain WHY in 1 line, list the key indicators, and end with a short safety tip. Be reassuring when something is genuine — do not create unnecessary panic. Reply in simple Hinglish, maximum 3 sentences. Remind users that even genuine senders never ask for OTP, PIN or CVV.",
       messages: data.messages.map((m) => ({ role: m.role, content: m.content })),
     });
+
     return { reply: text };
   });
 
@@ -213,11 +248,12 @@ Return ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink"
     ];
     frames.forEach((f) => content.push({ type: "image", image: f }));
 
-    const { text } = await generateText({
+    const text = await generateWithLogging("deepfake_scan", {
       model: g(VISION_MODEL),
       system: SYS,
       messages: [{ role: "user", content }],
     });
+
     try {
       return JSON.parse(stripJsonFences(text));
     } catch {
