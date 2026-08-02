@@ -70,19 +70,12 @@ function Landing() {
   );
 }
 
-function generateApiKey() {
-  const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-  return `ss_live_${hex}`;
-}
-
 function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
   const [step, setStep] = useState<"pay" | "email" | "done">("pay");
   const [email, setEmail] = useState("");
   const [txn, setTxn] = useState("");
   const [issuing, setIssuing] = useState(false);
-  const [issuedKey, setIssuedKey] = useState<string | null>(null);
+  const [requested, setRequested] = useState(false);
 
   async function issueKey() {
     const trimmed = email.trim().toLowerCase();
@@ -92,22 +85,24 @@ function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
     }
     setIssuing(true);
     try {
-      const key = generateApiKey();
-      const { error } = await supabase.from("api_keys").insert({
-        email: trimmed,
-        api_key: key,
-        plan,
-        status: "pending_verification",
-      });
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error("Please sign in first — your key is tied to your account");
+        window.location.href = "/auth";
+        return;
+      }
+      // The key itself is generated server-side and never handled by the browser.
+      const { error } = await supabase.rpc("request_api_key", { _plan: plan });
       if (error) throw error;
-      setIssuedKey(key);
+      setRequested(true);
       setStep("done");
-    } catch (e) {
-      toast.error("Could not issue key — try again");
+    } catch {
+      toast.error("Could not submit your request — try again");
     } finally {
       setIssuing(false);
     }
   }
+
 
   return (
     <div
@@ -222,39 +217,34 @@ function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
           </>
         )}
 
-        {step === "done" && issuedKey && (
+        {step === "done" && requested && (
           <>
             <div className="text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#00C853]/20 text-2xl">
                 🎉
               </div>
-              <h3 className="mt-3 text-lg font-black text-white">Your API key</h3>
-              <p className="mt-1 text-xs text-[#8899aa]">Save this now — you'll only see it once.</p>
+              <h3 className="mt-3 text-lg font-black text-white">Request received</h3>
+              <p className="mt-1 text-xs text-[#8899aa]">Your key is generated securely on our servers.</p>
             </div>
 
             <div className="mt-5 rounded-xl border border-[#00C853]/40 bg-[#00C853]/5 p-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-[#00C853]">
                 {plan}
               </p>
-              <p className="mt-1 break-all font-mono text-xs text-white">{issuedKey}</p>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(issuedKey);
-                  toast.success("API key copied");
-                }}
-                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#00C853] py-2 text-xs font-black text-white active:scale-95"
-              >
-                <Copy className="h-3 w-3" /> Copy API key
-              </button>
+              <p className="mt-1 text-xs text-[#c9d4e2]">
+                Once we confirm your UPI payment, your API key becomes visible in your profile and is emailed to
+                you. It is never shown before activation.
+              </p>
             </div>
 
             <div className="mt-4 rounded-xl border border-[#1e3a5f] bg-[#0a1628] p-3 text-[11px] text-[#c9d4e2]">
               <p className="font-bold text-white">Status: Pending verification</p>
               <p className="mt-1 text-[#8899aa]">
-                Key sent to <span className="text-white">{email}</span>. It activates within 1 hour after we
-                confirm your UPI payment.
+                We'll contact <span className="text-white">{email}</span>. Activation usually takes under 1 hour
+                {txn ? " — thanks for sharing your transaction ID" : ""}.
               </p>
             </div>
+
 
             <button
               onClick={onClose}
