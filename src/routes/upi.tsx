@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictBadge, TrustScore } from "@/components/VerdictBadge";
 import { analyzeUpi } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Megaphone, Loader2 } from "lucide-react";
 
@@ -73,8 +75,10 @@ function UpiScreen() {
       setResult(merged);
       pushRecent({ upi: id, verdict: merged.verdict });
       if (merged.verdict === "DANGER") navigator.vibrate?.([200, 100, 200]);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Could not verify UPI");
+    } catch (e) {
+      console.error("[upi] UPI check failed:", e);
+      toast.error(aiErrorMessage(e));
+
     } finally {
       setLoading(false);
     }
