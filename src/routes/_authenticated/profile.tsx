@@ -157,7 +157,12 @@ function ProfilePage() {
                 <Coins className="h-5 w-5 text-[#F59E0B]" />
               </div>
               <div className="flex-1">
-                <p className="text-2xl font-black">{credits ?? "—"}</p>
+                {creditsLoading ? (
+                  <div className="h-8 w-16 animate-pulse rounded-md bg-muted" />
+                ) : (
+                  <p className="text-2xl font-black">{credits ?? 0}</p>
+                )}
+
                 <p className="text-[11px] text-muted-foreground">
                   100 free every month · 2 credits per scan
                   {resetAt && <> · resets {new Date(resetAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</>}
