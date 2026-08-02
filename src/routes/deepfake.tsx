@@ -4,6 +4,8 @@ import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { analyzeDeepfake } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Video, ImageIcon, RefreshCw, Megaphone, Share2, AlertTriangle, ShieldCheck } from "lucide-react";
 
