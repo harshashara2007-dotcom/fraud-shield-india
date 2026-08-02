@@ -281,8 +281,16 @@ function DeepfakePage() {
       setResult(res as DeepfakeResult);
       setScanProgress(100);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Analysis failed");
+      const msg = e instanceof Error ? e.message : "Analysis failed";
+      if (/unauthor|no authorization header|invalid token/i.test(msg)) {
+        setError("Please log in to use this feature.");
+      } else if (msg.includes("insufficient_credits")) {
+        setError("Out of credits — top up from your profile.");
+      } else {
+        setError("Analysis failed. Please try again.");
+      }
     } finally {
+
       clearInterval(stepTimer);
       clearInterval(progTimer);
       setTimeout(() => setScanning(false), 400);
