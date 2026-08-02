@@ -29,6 +29,8 @@ function ScanScreen() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scanning, setScanning] = useState(false);
+  const [camError, setCamError] = useState<string | null>(null);
+
   const [analyzing, setAnalyzing] = useState(false);
   const [qrData, setQrData] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
