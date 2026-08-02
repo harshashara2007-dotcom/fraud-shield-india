@@ -29,6 +29,8 @@ function ScanScreen() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scanning, setScanning] = useState(false);
+  const [camError, setCamError] = useState<string | null>(null);
+
   const [analyzing, setAnalyzing] = useState(false);
   const [qrData, setQrData] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -65,19 +67,44 @@ function ScanScreen() {
 
     (async () => {
       try {
+        if (typeof window !== "undefined" && !window.isSecureContext) {
+          throw new DOMException("insecure", "InsecureContextError");
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new DOMException("unsupported", "NotSupportedError");
+        }
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
+          video: { facingMode: { ideal: "environment" } },
           audio: false,
         });
         if (cancelled || !videoRef.current) return;
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+        setCamError(null);
         tick();
-      } catch {
-        toast.error("Camera unavailable. Try uploading instead.");
+      } catch (err) {
+        const name = (err as DOMException)?.name ?? "";
+        let msg: string;
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          msg =
+            "Camera permission denied. Allow camera access in your browser's site settings (or open the app in a new tab), then try again.";
+        } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+          msg = "No camera found on this device. Use “Upload from Gallery” instead.";
+        } else if (name === "NotReadableError" || name === "AbortError") {
+          msg = "Your camera is busy in another app. Close it and try again.";
+        } else if (name === "InsecureContextError") {
+          msg = "Camera needs a secure (HTTPS) connection. Open the app over HTTPS and try again.";
+        } else if (name === "NotSupportedError") {
+          msg = "This browser doesn't support camera scanning. Use “Upload from Gallery” instead.";
+        } else {
+          msg = "Could not start the camera. Use “Upload from Gallery” instead.";
+        }
+        setCamError(msg);
+        toast.error(msg);
         setScanning(false);
       }
     })();
+
 
     return () => {
       cancelled = true;
@@ -169,13 +196,23 @@ function ScanScreen() {
               )}
             </div>
 
+            {camError && (
+              <p className="rounded-xl border border-danger/40 bg-danger/10 p-3 text-xs font-medium text-danger">
+                {camError}
+              </p>
+            )}
+
             <button
-              onClick={() => setScanning((s) => !s)}
+              onClick={() => {
+                setCamError(null);
+                setScanning((s) => !s);
+              }}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/30 active:scale-[0.98]"
             >
               <Camera className="h-5 w-5" />
-              {scanning ? "Stop camera" : "Scan with Camera"}
+              {scanning ? "Stop camera" : camError ? "Retry camera" : "Scan with Camera"}
             </button>
+
 
             <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-card py-3.5 text-sm font-bold active:scale-[0.98]">
               <ImageIcon className="h-5 w-5" />

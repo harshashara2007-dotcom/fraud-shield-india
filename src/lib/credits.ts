@@ -10,10 +10,17 @@ export const CREDIT_PACKS = [
 export const SCAN_COST = 2;
 
 export async function fetchCredits(): Promise<{ balance: number; monthly_reset_at: string } | null> {
+  // get_or_init_credits creates the user's row with 100 credits on first call.
   const { data, error } = await supabase.rpc("get_or_init_credits");
-  if (error || !data || !data[0]) return null;
-  return data[0] as any;
+  if (error) {
+    console.error("[credits] failed to load", error.message);
+    return null;
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return row as { balance: number; monthly_reset_at: string };
 }
+
 
 /** Deducts credits before an action. Returns true if allowed. Silent no-op for signed-out users. */
 export async function chargeCredits(amount: number, reason: string): Promise<boolean> {

@@ -46,6 +46,8 @@ function ProfilePage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [scanCount, setScanCount] = useState(0);
   const [credits, setCredits] = useState<number | null>(null);
+  const [creditsLoading, setCreditsLoading] = useState(true);
+
   const [resetAt, setResetAt] = useState<string | null>(null);
   const [showBuy, setShowBuy] = useState(false);
   const [notify, setNotify] = useState<boolean>(() => {
@@ -57,7 +59,7 @@ function ProfilePage() {
     setScanCount(loadScanHistory().length);
     supabase.auth.getUser().then(async ({ data }) => {
       const u = data.user;
-      if (!u) return;
+      if (!u) { setCreditsLoading(false); return; }
       setEmail(u.email ?? "");
       setUserId(u.id);
       setJoined(u.created_at ?? "");
@@ -68,9 +70,15 @@ function ProfilePage() {
         .eq("role", "admin")
         .maybeSingle();
       setIsAdmin(!!role);
-      const c = await fetchCredits();
-      if (c) { setCredits(c.balance); setResetAt(c.monthly_reset_at); }
+      try {
+        const c = await fetchCredits();
+        if (c) { setCredits(c.balance); setResetAt(c.monthly_reset_at); }
+        else setCredits(0);
+      } finally {
+        setCreditsLoading(false);
+      }
     });
+
   }, []);
 
   useEffect(() => {
@@ -157,7 +165,12 @@ function ProfilePage() {
                 <Coins className="h-5 w-5 text-[#F59E0B]" />
               </div>
               <div className="flex-1">
-                <p className="text-2xl font-black">{credits ?? "—"}</p>
+                {creditsLoading ? (
+                  <div className="h-8 w-16 animate-pulse rounded-md bg-muted" />
+                ) : (
+                  <p className="text-2xl font-black">{credits ?? 0}</p>
+                )}
+
                 <p className="text-[11px] text-muted-foreground">
                   100 free every month · 2 credits per scan
                   {resetAt && <> · resets {new Date(resetAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</>}

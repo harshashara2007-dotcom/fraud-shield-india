@@ -236,7 +236,13 @@ function DeepfakePage() {
 
   async function startAnalysis() {
     if (!frameData && videoFrames.length === 0) return;
+    const { data: sessionRes } = await supabase.auth.getSession();
+    if (!sessionRes.session) {
+      setError("Please log in to use this feature.");
+      return;
+    }
     setScanning(true); setScanStep(0); setScanProgress(0); setError(null);
+
 
     const stepTimer = setInterval(() => {
       setScanStep((s) => (s + 1) % SCAN_STEPS.length);
@@ -275,8 +281,16 @@ function DeepfakePage() {
       setResult(res as DeepfakeResult);
       setScanProgress(100);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Analysis failed");
+      const msg = e instanceof Error ? e.message : "Analysis failed";
+      if (/unauthor|no authorization header|invalid token/i.test(msg)) {
+        setError("Please log in to use this feature.");
+      } else if (msg.includes("insufficient_credits")) {
+        setError("Out of credits — top up from your profile.");
+      } else {
+        setError("Analysis failed. Please try again.");
+      }
     } finally {
+
       clearInterval(stepTimer);
       clearInterval(progTimer);
       setTimeout(() => setScanning(false), 400);
