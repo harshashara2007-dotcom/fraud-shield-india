@@ -283,9 +283,8 @@ function DeepfakePage() {
     } catch (e) {
       console.error("[deepfake] analysis failed:", e);
       setError(aiErrorMessage(e));
-    }
-
     } finally {
+
 
       clearInterval(stepTimer);
       clearInterval(progTimer);
