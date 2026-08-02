@@ -248,11 +248,12 @@ Return ONLY JSON: {"verdict":"FAKE|REAL|UNCERTAIN","confidence":0-100,"eyeBlink"
     ];
     frames.forEach((f) => content.push({ type: "image", image: f }));
 
-    const { text } = await generateText({
+    const text = await generateWithLogging("deepfake_scan", {
       model: g(VISION_MODEL),
       system: SYS,
       messages: [{ role: "user", content }],
     });
+
     try {
       return JSON.parse(stripJsonFences(text));
     } catch {
