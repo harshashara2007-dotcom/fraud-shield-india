@@ -46,6 +46,8 @@ function ProfilePage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [scanCount, setScanCount] = useState(0);
   const [credits, setCredits] = useState<number | null>(null);
+  const [creditsLoading, setCreditsLoading] = useState(true);
+
   const [resetAt, setResetAt] = useState<string | null>(null);
   const [showBuy, setShowBuy] = useState(false);
   const [notify, setNotify] = useState<boolean>(() => {
