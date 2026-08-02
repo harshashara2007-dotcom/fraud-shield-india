@@ -70,19 +70,12 @@ function Landing() {
   );
 }
 
-function generateApiKey() {
-  const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-  return `ss_live_${hex}`;
-}
-
 function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
   const [step, setStep] = useState<"pay" | "email" | "done">("pay");
   const [email, setEmail] = useState("");
   const [txn, setTxn] = useState("");
   const [issuing, setIssuing] = useState(false);
-  const [issuedKey, setIssuedKey] = useState<string | null>(null);
+  const [requested, setRequested] = useState(false);
 
   async function issueKey() {
     const trimmed = email.trim().toLowerCase();
@@ -92,22 +85,24 @@ function BuyModal({ plan, onClose }: { plan: string; onClose: () => void }) {
     }
     setIssuing(true);
     try {
-      const key = generateApiKey();
-      const { error } = await supabase.from("api_keys").insert({
-        email: trimmed,
-        api_key: key,
-        plan,
-        status: "pending_verification",
-      });
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error("Please sign in first — your key is tied to your account");
+        window.location.href = "/auth";
+        return;
+      }
+      // The key itself is generated server-side and never handled by the browser.
+      const { error } = await supabase.rpc("request_api_key", { _plan: plan });
       if (error) throw error;
-      setIssuedKey(key);
+      setRequested(true);
       setStep("done");
-    } catch (e) {
-      toast.error("Could not issue key — try again");
+    } catch {
+      toast.error("Could not submit your request — try again");
     } finally {
       setIssuing(false);
     }
   }
+
 
   return (
     <div
