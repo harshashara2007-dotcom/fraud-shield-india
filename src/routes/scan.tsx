@@ -65,19 +65,44 @@ function ScanScreen() {
 
     (async () => {
       try {
+        if (typeof window !== "undefined" && !window.isSecureContext) {
+          throw new DOMException("insecure", "InsecureContextError");
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new DOMException("unsupported", "NotSupportedError");
+        }
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
+          video: { facingMode: { ideal: "environment" } },
           audio: false,
         });
         if (cancelled || !videoRef.current) return;
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+        setCamError(null);
         tick();
-      } catch {
-        toast.error("Camera unavailable. Try uploading instead.");
+      } catch (err) {
+        const name = (err as DOMException)?.name ?? "";
+        let msg: string;
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          msg =
+            "Camera permission denied. Allow camera access in your browser's site settings (or open the app in a new tab), then try again.";
+        } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+          msg = "No camera found on this device. Use “Upload from Gallery” instead.";
+        } else if (name === "NotReadableError" || name === "AbortError") {
+          msg = "Your camera is busy in another app. Close it and try again.";
+        } else if (name === "InsecureContextError") {
+          msg = "Camera needs a secure (HTTPS) connection. Open the app over HTTPS and try again.";
+        } else if (name === "NotSupportedError") {
+          msg = "This browser doesn't support camera scanning. Use “Upload from Gallery” instead.";
+        } else {
+          msg = "Could not start the camera. Use “Upload from Gallery” instead.";
+        }
+        setCamError(msg);
+        toast.error(msg);
         setScanning(false);
       }
     })();
+
 
     return () => {
       cancelled = true;
