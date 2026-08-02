@@ -87,6 +87,8 @@ export const analyzeQr = createServerFn({ method: "POST" })
     const out = await callJson(
       `Analyze this QR code content for fraud risk: "${data.qrData}".\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","url":"...","domainAge":"...","ssl":"valid|invalid|unknown","blacklisted":"Yes (n reports)|No","upiName":"if UPI QR else empty","trustScore":1-10,"reason":"one sentence"}`,
       SYS,
+      "qr_scan",
+
     );
     return out;
   });
@@ -100,6 +102,8 @@ export const analyzeUpi = createServerFn({ method: "POST" })
     return callJson(
       `Analyze this Indian UPI ID: "${data.upiId}". Check format validity, infer bank from suffix (@ybl=PhonePe, @paytm=Paytm, @oksbi=SBI, @okhdfcbank=HDFC, @okicici=ICICI, @okaxis=Axis, @upi=NPCI). Estimate scam risk based on patterns like 'refund', 'lottery', 'kyc', 'support' in handle.\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","name":"likely account name","bank":"...","city":"if guessable else Unknown","trustScore":1-10,"firstSeen":"approx duration","reason":"one sentence"}`,
       SYS,
+      "upi_check",
+
     );
   });
 
@@ -112,6 +116,8 @@ export const analyzeCall = createServerFn({ method: "POST" })
     return callJson(
       `Analyze this Indian phone number: "${data.phone}". Infer operator from prefix (Jio 6/7/8/9-series, Airtel, Vi, BSNL) and likely state/circle. Flag spam patterns (sequential digits, repeating, known fraud series).\nReturn JSON: {"verdict":"SAFE|SUSPICIOUS|DANGER","type":"category","operator":"Airtel|Jio|Vi|BSNL|Unknown","location":"city, state","aiVoice":true|false,"trustScore":1-10,"warning":"one sentence"}`,
       SYS,
+      "call_check",
+
     );
   });
 
