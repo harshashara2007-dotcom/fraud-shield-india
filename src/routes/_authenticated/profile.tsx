@@ -59,7 +59,7 @@ function ProfilePage() {
     setScanCount(loadScanHistory().length);
     supabase.auth.getUser().then(async ({ data }) => {
       const u = data.user;
-      if (!u) return;
+      if (!u) { setCreditsLoading(false); return; }
       setEmail(u.email ?? "");
       setUserId(u.id);
       setJoined(u.created_at ?? "");
@@ -70,9 +70,15 @@ function ProfilePage() {
         .eq("role", "admin")
         .maybeSingle();
       setIsAdmin(!!role);
-      const c = await fetchCredits();
-      if (c) { setCredits(c.balance); setResetAt(c.monthly_reset_at); }
+      try {
+        const c = await fetchCredits();
+        if (c) { setCredits(c.balance); setResetAt(c.monthly_reset_at); }
+        else setCredits(0);
+      } finally {
+        setCreditsLoading(false);
+      }
     });
+
   }, []);
 
   useEffect(() => {
