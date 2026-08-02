@@ -196,13 +196,23 @@ function ScanScreen() {
               )}
             </div>
 
+            {camError && (
+              <p className="rounded-xl border border-danger/40 bg-danger/10 p-3 text-xs font-medium text-danger">
+                {camError}
+              </p>
+            )}
+
             <button
-              onClick={() => setScanning((s) => !s)}
+              onClick={() => {
+                setCamError(null);
+                setScanning((s) => !s);
+              }}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/30 active:scale-[0.98]"
             >
               <Camera className="h-5 w-5" />
-              {scanning ? "Stop camera" : "Scan with Camera"}
+              {scanning ? "Stop camera" : camError ? "Retry camera" : "Scan with Camera"}
             </button>
+
 
             <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-card py-3.5 text-sm font-bold active:scale-[0.98]">
               <ImageIcon className="h-5 w-5" />
