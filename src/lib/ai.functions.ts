@@ -170,12 +170,13 @@ export const safebotChat = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await chargeServerCredits(context.supabase, "safebot_chat");
     const g = gateway();
-    const { text } = await generateText({
+    const text = await generateWithLogging("safebot_chat", {
       model: g(TEXT_MODEL),
       system:
         "You are SafeBot 🛡️, India's most trusted cybersecurity assistant. When analyzing a message, number or situation: clearly identify if it is SAFE (use ✅) or DANGER (use 🚨), explain WHY in 1 line, list the key indicators, and end with a short safety tip. Be reassuring when something is genuine — do not create unnecessary panic. Reply in simple Hinglish, maximum 3 sentences. Remind users that even genuine senders never ask for OTP, PIN or CVV.",
       messages: data.messages.map((m) => ({ role: m.role, content: m.content })),
     });
+
     return { reply: text };
   });
 
