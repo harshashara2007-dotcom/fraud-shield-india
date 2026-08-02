@@ -60,7 +60,13 @@ function AuthScreen() {
         });
         if (error) throw error;
         if (signInData.user) {
-          const { data: banned } = await supabase.rpc("is_banned", { _user_id: signInData.user.id });
+          // Own-ban lookup goes through RLS ("Users can see own ban"), so no
+          // privileged function is needed to check another user's ban state.
+          const { data: banned } = await supabase
+            .from("banned_users")
+            .select("user_id")
+            .eq("user_id", signInData.user.id)
+            .maybeSingle();
           if (banned) {
             await supabase.auth.signOut();
             toast.error("Your account has been suspended by an admin.");
@@ -68,6 +74,7 @@ function AuthScreen() {
             return;
           }
         }
+
         toast.success("Welcome back 👋");
       }
       navigate({ to: "/" });
