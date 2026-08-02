@@ -13,6 +13,9 @@ const AI_COST = 2;
 /**
  * Server-side credit enforcement. Runs as the signed-in user (RLS applies), so
  * clients cannot skip it by calling the endpoint directly.
+ *
+ * Throws stable codes consumed by `@/lib/ai-errors`:
+ * `insufficient_credits` | `credits_unavailable`.
  */
 async function chargeServerCredits(supabase: unknown, reason: string) {
   const client = supabase as {
@@ -24,19 +27,41 @@ async function chargeServerCredits(supabase: unknown, reason: string) {
     if (String(error.message).includes("insufficient_credits")) {
       throw new Error("insufficient_credits");
     }
-    throw new Error("Could not verify credits");
+    // Log the real database error so it shows up in backend logs.
+    console.error(`[ai:${reason}] credit charge failed:`, error.message);
+    throw new Error("credits_unavailable");
   }
 }
 
 function gateway() {
   const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
+  if (!key) {
+    console.error("[ai] LOVABLE_API_KEY is not configured on the server");
+    throw new Error("ai_config_missing");
+  }
   return createLovableAiGatewayProvider(key);
 }
 
-async function callJson(prompt: string, system: string) {
+/** Calls the model and logs any provider failure before throwing `ai_unavailable`. */
+async function generateWithLogging(
+  reason: string,
+  args: Parameters<typeof generateText>[0],
+): Promise<string> {
+  try {
+    const { text } = await generateText(args);
+    return text;
+  } catch (err) {
+    console.error(
+      `[ai:${reason}] model call failed:`,
+      err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+    );
+    throw new Error("ai_unavailable");
+  }
+}
+
+async function callJson(prompt: string, system: string, reason: string) {
   const g = gateway();
-  const { text } = await generateText({
+  const text = await generateWithLogging(reason, {
     model: g(TEXT_MODEL),
     system,
     prompt,
@@ -44,9 +69,11 @@ async function callJson(prompt: string, system: string) {
   try {
     return JSON.parse(stripJsonFences(text));
   } catch {
+    console.warn(`[ai:${reason}] model returned non-JSON output, falling back`);
     return { verdict: "SUSPICIOUS", reason: text.slice(0, 240), trustScore: 5 };
   }
 }
+
 
 const SYS = "You are ScanScam, India's #1 fraud detection AI. Always respond with ONLY a valid JSON object — no prose, no markdown fences. Be specific to Indian financial scams.";
 
