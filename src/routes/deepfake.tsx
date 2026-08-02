@@ -236,7 +236,13 @@ function DeepfakePage() {
 
   async function startAnalysis() {
     if (!frameData && videoFrames.length === 0) return;
+    const { data: sessionRes } = await supabase.auth.getSession();
+    if (!sessionRes.session) {
+      setError("Please log in to use this feature.");
+      return;
+    }
     setScanning(true); setScanStep(0); setScanProgress(0); setError(null);
+
 
     const stepTimer = setInterval(() => {
       setScanStep((s) => (s + 1) % SCAN_STEPS.length);
