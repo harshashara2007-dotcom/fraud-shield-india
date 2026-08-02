@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { VerdictHero, TrustScore } from "@/components/VerdictBadge";
 import { analyzeQr } from "@/lib/ai.functions";
+import { aiErrorMessage } from "@/lib/ai-errors";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Camera, Image as ImageIcon, RotateCcw, Megaphone } from "lucide-react";
 
