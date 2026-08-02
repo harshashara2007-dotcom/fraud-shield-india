@@ -130,7 +130,7 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await chargeServerCredits(context.supabase, "screenshot_scan");
     const g = gateway();
-    const { text } = await generateText({
+    const text = await generateWithLogging("screenshot_scan", {
       model: g(VISION_MODEL),
       system: SYS,
       messages: [
@@ -146,6 +146,7 @@ export const analyzeScreenshot = createServerFn({ method: "POST" })
         },
       ],
     });
+
     try {
       return JSON.parse(stripJsonFences(text));
     } catch {
