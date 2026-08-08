@@ -4,6 +4,12 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import {
+  isMedianApp,
+  hasMedianGoogleLogin,
+  medianGoogleIdToken,
+  MedianLoginError,
+} from "@/lib/median-auth";
 import { AppShell, ScreenHeader } from "@/components/AppShell";
 import { Loader2, Mail, Lock, Shield } from "lucide-react";
 
