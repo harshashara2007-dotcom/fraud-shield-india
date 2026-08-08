@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
-  const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -48,7 +47,8 @@ function ResetPasswordPage() {
     if (error) return toast.error(error.message);
     setDone(true);
     toast.success("Password updated 🎉");
-    setTimeout(() => navigate({ to: "/" }), 1200);
+    // No auto-redirect / auto-login: this page may open in a separate browser
+    // context (e.g. from a wrapped mobile app) where the session won't carry over.
   }
 
   return (
@@ -108,8 +108,10 @@ function ResetPasswordPage() {
           {done && (
             <div className="rounded-xl border border-safe/40 bg-safe/10 p-4 text-center">
               <div className="text-3xl">✅</div>
-              <p className="mt-2 text-sm font-semibold">Password updated</p>
-              <p className="mt-1 text-xs text-muted-foreground">Redirecting you home…</p>
+              <p className="mt-2 text-sm font-semibold">Password updated successfully!</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Please return to the ScanScam app and log in with your new password.
+              </p>
             </div>
           )}
         </div>
