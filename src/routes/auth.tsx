@@ -94,11 +94,22 @@ function AuthScreen() {
   async function handleGoogle() {
     setLoading(true);
 
+    const inMedian = isMedianApp();
+    const hasPlugin = hasMedianGoogleLogin();
+    console.log("[auth] Google button tapped", {
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "n/a",
+      isMedianApp: inMedian,
+      hasMedianGoogleLogin: hasPlugin,
+      chosenPath: inMedian && hasPlugin ? "NATIVE median.socialLogin.google.login()" : "BROWSER OAuth redirect",
+    });
+
     // Inside the Median native app the browser redirect flow fails state
     // verification, so use Median's native Google plugin + ID token sign-in.
-    if (isMedianApp() && hasMedianGoogleLogin()) {
+    if (inMedian && hasPlugin) {
       try {
+        console.log("[auth] ➜ NATIVE PATH: calling median.socialLogin.google.login()");
         const idToken = await medianGoogleIdToken();
+        console.log("[auth] native path got Google ID token, length:", idToken.length);
         const { error } = await supabase.auth.signInWithIdToken({
           provider: "google",
           token: idToken,
@@ -120,9 +131,14 @@ function AuthScreen() {
       return;
     }
 
+    console.log(
+      "[auth] ➜ REDIRECT PATH: calling browser OAuth signInWithOAuth('google')",
+      { reason: !inMedian ? "not running inside Median WebView" : "median.socialLogin.google.login is unavailable" },
+    );
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
+
     if (result.error) {
       toast.error("Google sign-in failed");
       setLoading(false);
